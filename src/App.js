@@ -7,7 +7,7 @@ window.WhatsCityApp = function WhatsCityApp() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.users && parsed.reports) {
+        if (parsed && parsed.users && parsed.reports && parsed.cityCameras) {
           return parsed;
         }
       }
@@ -701,7 +701,11 @@ window.WhatsCityApp = function WhatsCityApp() {
         )}
 
         {/* Area Contenuto Principale Scorrevole */}
-        <main className="flex-1 overflow-y-auto relative">
+        <main
+          className={`flex-1 relative flex flex-col ${
+            activeTab === "map" ? "overflow-hidden" : "overflow-y-auto"
+          }`}
+        >
           {/* TAB 1: HOME FEED SOCIAL CITTADINO (Pagina 8 Sinistra PDF) */}
           {activeTab === "home" && (
             <div className="p-3.5 space-y-3.5 pb-24">

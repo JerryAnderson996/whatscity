@@ -59,6 +59,23 @@
       }
       .leaflet-container {
         font-family: "Plus Jakarta Sans", sans-serif !important;
+        width: 100% !important;
+        height: 100% !important;
+        background-color: #e2e8f0;
+      }
+      /* Fix conflitto Tailwind CSS img { max-width: 100% } con i tile di Leaflet */
+      .leaflet-pane img,
+      .leaflet-tile,
+      .leaflet-marker-icon,
+      .leaflet-marker-shadow {
+        max-width: none !important;
+        max-height: none !important;
+      }
+      .custom-pin-marker,
+      .iot-pole-marker,
+      .milano-cam-marker {
+        background: transparent !important;
+        border: none !important;
       }
     </style>
   </head>

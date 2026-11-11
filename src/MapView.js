@@ -114,11 +114,22 @@ window.WhatsCityMapView = function WhatsCityMapView({
     tileLayerRef.current = tileLayer;
     markersLayerRef.current = markersLayer;
 
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
+    // Ricalcolo automatico dimensioni del canvas Leaflet per evitare aree grigie
+    const timer1 = setTimeout(() => map.invalidateSize(), 100);
+    const timer2 = setTimeout(() => map.invalidateSize(), 400);
+
+    let resizeObserver = null;
+    if (window.ResizeObserver && mapContainerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      resizeObserver.observe(mapContainerRef.current);
+    }
 
     return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      if (resizeObserver) resizeObserver.disconnect();
       map.remove();
       mapInstanceRef.current = null;
     };
@@ -589,8 +600,12 @@ window.WhatsCityMapView = function WhatsCityMapView({
         )}
       </div>
 
-      {/* Container Mappa Leaflet */}
-      <div ref={mapContainerRef} className="w-full h-full z-0" />
+      {/* Container Mappa Leaflet con altezza esplicita garantita */}
+      <div
+        ref={mapContainerRef}
+        className="w-full flex-1 z-0"
+        style={{ minHeight: "620px", height: "100%" }}
+      />
 
       {/* Drawer 1: Dettaglio Segnalazione Selezionata + Link Google Maps Street View */}
       {selectedMapReport && (
