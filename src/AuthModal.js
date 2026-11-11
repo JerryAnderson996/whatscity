@@ -667,18 +667,19 @@ window.WhatsCityAuthModal = function WhatsCityAuthModal({
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Quartiere / Zona Meda
+                    Municipio / Quartiere Milano
                   </label>
                   <select
                     value={neighborhood}
                     onChange={(e) => setNeighborhood(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white font-semibold"
                   >
-                    <option>Centro</option>
-                    <option>Nord / Parco</option>
-                    <option>Polo Sud</option>
-                    <option>Sud / Stazione</option>
-                    <option>Ovest / San Giorgio</option>
+                    <option>Municipio 1 · Duomo / Brera</option>
+                    <option>Municipio 9 · Isola / Porta Nuova</option>
+                    <option>Municipio 3 · Città Studi / Loreto</option>
+                    <option>Municipio 6 · Navigli / Darsena</option>
+                    <option>Municipio 9 · Niguarda / Bicocca</option>
+                    <option>Municipio 8 · Sempione / CityLife</option>
                   </select>
                 </div>
                 <div>

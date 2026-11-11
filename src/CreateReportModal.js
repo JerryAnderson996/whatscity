@@ -21,14 +21,14 @@ window.WhatsCityCreateModal = function WhatsCityCreateModal({
       ? preselectedPole.address
       : preselectedCoords
       ? preselectedCoords.address
-      : "Via Roma 14, Meda (MB)"
+      : "Corso Buenos Aires 32, Milano (MI)"
   );
   const [coords, setCoords] = React.useState(
     preselectedPole
       ? { lat: preselectedPole.lat, lng: preselectedPole.lng }
       : preselectedCoords
       ? { lat: preselectedCoords.lat, lng: preselectedCoords.lng }
-      : { lat: 45.6618, lng: 9.1585 }
+      : { lat: 45.4795, lng: 9.2105 }
   );
   const [imagePreview, setImagePreview] = React.useState(
     "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&auto=format&fit=crop&q=80"
@@ -49,6 +49,9 @@ window.WhatsCityCreateModal = function WhatsCityCreateModal({
       setSelectedPoleId("");
       setAddress(preselectedCoords.address);
       setCoords({ lat: preselectedCoords.lat, lng: preselectedCoords.lng });
+      if (preselectedCoords.prefillTitle) {
+        setTitle(preselectedCoords.prefillTitle);
+      }
       setMode("form");
     }
   }, [preselectedPole, preselectedCoords]);

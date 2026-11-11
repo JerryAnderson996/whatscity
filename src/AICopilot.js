@@ -31,32 +31,32 @@ window.WhatsCityAIEngine = {
       return rWords.some((w) => text.includes(w));
     });
 
-    // Triage euristico istantaneo
+    // Triage euristico istantaneo su Milano Smart City
     let category = "Strade & Buche";
     let priority = "Media";
-    let suggestedCompany = "EdilStrade Briantea S.r.l.";
-    let reason = "Rilevato dissesto o manutenzione ordinaria del suolo pubblico.";
+    let suggestedCompany = "MM S.p.A. & Impresa Strade Milano";
+    let reason = "Rilevato dissesto su pavé o manutenzione manto stradale a Milano.";
 
     if (text.match(/lampion|luce|led|buio|illuminazion|palo|scintill|cavo/)) {
       category = "Illuminazione";
       priority = "Alta";
-      suggestedCompany = "AEB Luce & Reti S.p.A.";
-      reason = "Rischio sicurezza notturna / guasto rete illuminazione pubblica AEB.";
-    } else if (text.match(/rifiut|spazzatur|ingombrant|sacco|sacchi|cassonett|abbandon|vetro|plastica/)) {
+      suggestedCompany = "A2A Illuminazione Pubblica & Smart City";
+      reason = "Rischio sicurezza notturna / guasto rete illuminazione pubblica A2A Milano.";
+    } else if (text.match(/rifiut|spazzatur|ingombrant|sacco|sacchi|cassonett|cestin|abbandon|vetro|plastica|amsa/)) {
       category = "Rifiuti";
       priority = "Alta";
-      suggestedCompany = "Gelsia Ambiente / Eco Azienda";
-      reason = "Decoro urbano e igiene pubblica prioritaria.";
-    } else if (text.match(/alber|ram|potatur|erba|verde|parco|piant|siep/)) {
+      suggestedCompany = "AMSA — Gruppo A2A Milano";
+      reason = "Decoro urbano e raccolta straordinaria AMSA nei Municipi di Milano.";
+    } else if (text.match(/alber|ram|potatur|erba|verde|parco|piant|siep|sempione|bam/)) {
       category = "Verde & Alberi";
       priority = text.match(/pericol|cadut|strada|ciclabil/) ? "Alta" : "Media";
-      suggestedCompany = "Eco Azienda Brianza";
-      reason = "Cura del patrimonio arboreo e sicurezza percorsi.";
-    } else if (text.match(/allagament|tombin|caditoi|acqua|fogn|pioggi|esondazion|tarò|idro/)) {
+      suggestedCompany = "Consorzio Verde Milano & ForestaMi";
+      reason = "Cura del patrimonio arboreo e sicurezza piste ciclabili.";
+    } else if (text.match(/allagament|tombin|caditoi|acqua|fogn|pioggi|esondazion|seveso|lambro|navigl|idro/)) {
       category = "Sicurezza & Idro";
       priority = "Alta";
-      suggestedCompany = "BrianzAcque / Protezione Civile Meda";
-      reason = "Prevenzione rischio idrogeologico e allagamenti urbani.";
+      suggestedCompany = "MM Servizio Idrico & Protezione Civile Milano";
+      reason = "Prevenzione rischio idrogeologico (bacino Seveso/Lambro) e pulizia caditoie.";
     }
 
     const apiKey = this.getApiKey();
@@ -161,65 +161,88 @@ Rispondi in italiano in modo chiaro, conciso, operativo e strutturato con elench
       }
     }
 
-    // Motore AI Locale Intelligente contestuale (funziona subito offline/senza API key)
+    // Motore AI Locale Intelligente contestuale per Milano Smart City
     const q = userMessage.toLowerCase();
+    const cameras = appState.cityCameras || [];
+
+    if (q.match(/telecamer|cam|video|traffico|ztl|area c|area b|seveso/)) {
+      return {
+        source: "WhatsCity AI Core · Rete Telecamere Milano",
+        text:
+          `📹 **Monitoraggio Live Telecamere Urbane & Computer Vision Milano (${cameras.length} flussi attivi):**\n\n` +
+          cameras
+            .map(
+              (c) =>
+                `• **${c.id}** (*${c.name}*): \`${c.aiAnalytics.vehiclesPerHour}\` — 🤖 *${c.aiAnalytics.anomalyDetected}*`
+            )
+            .join("\n") +
+          `\n\n🚨 **Allerta AI Vision:** La telecamera \`CAM-MI-04\` (Niguarda / Viale Fulvio Testi) rileva pre-soglia Fiume Seveso (1.45m) e caditoia da disostruire con priorità assoluta.`
+      };
+    }
 
     if (q.match(/piano|priorit|pa|comune|critic|urgent|sintesi|report/)) {
       return {
-        source: "WhatsCity AI Core",
-        text: `📊 **Piano d'Azione Prioritario per la PA (Comune di Meda):**\n\n` +
-          `1. 🔴 **Emergenza Idro & Allagamenti:** Intervenire subito su *"Caditoia ostruita da fogliame"* in **Via Solferino** (Priorità Alta) per prevenire criticità come l'evento del 22/09/2025.\n` +
-          `2. 🔴 **Igiene Urbana:** Assegnare il ticket *"Abbandono rifiuti ingombranti"* in **Via Indipendenza 42** (31 conferme dai cittadini, rilevato da Palo Smart \`QR-MEDA-04\`).\n` +
-          `3. 🟡 **Monitoraggio Lavori in Corso:** Verificare il completamento sostituzione driver LED in **Via Roma 14** (\`AEB Luce & Reti S.p.A.\`) e potatura in **Via XXIV Maggio** (\`Eco Azienda Brianza\`).\n\n` +
-          `💡 *Stima efficienza:* Risparmio stimato del **38% sui tempi di sopralluogo** grazie alle foto geolocalizzate e telemetria QR.`
+        source: "WhatsCity AI Core · Sala Operativa Comune di Milano",
+        text:
+          `📊 **Piano d'Azione Prioritario per la PA (Comune di Milano — Municipi 1-9):**\n\n` +
+          `1. 🔴 **Emergenza Idro Seveso (Municipio 9):** Intervento immediato MM S.p.A. su *"Caditoie ostruite in Viale Fulvio Testi"* rilevato anche da \`CAM-MI-04\`.\n` +
+          `2. 🔴 **Sicurezza Ciclabile & LED (Municipio 3):** Ripristino lampione spento in **Corso Buenos Aires 32** (Palo \`QR-MI-LORETO-03\`) affidato ad \`A2A Illuminazione Pubblica\`.\n` +
+          `3. 🟡 **Decoro Navigli (Municipio 6):** Raccolta straordinaria \`AMSA Gruppo A2A\` lungo **Ripa di Porta Ticinese / Darsena** (confermata da \`CAM-MI-03\`).\n\n` +
+          `💡 *Impatto Smart City:* Riduzione del **42% dei tempi di presa in carico** incrociando post social cittadini, QR Pali A2A e Computer Vision delle telecamere.`
       };
     }
 
     if (q.match(/aria|iot|sensor|pali|palo|temperatura|inquinament|aqi|a2a|led/)) {
       return {
-        source: "WhatsCity AI Core · Telemetria IoT A2A",
-        text: `📡 **Stato Real-Time Rete Pali Intelligenti AEB / A2A (${poles.length} nodi):**\n\n` +
+        source: "WhatsCity AI Core · Telemetria IoT A2A Milano",
+        text:
+          `📡 **Stato Real-Time Rete Pali Intelligenti A2A Milano (${poles.length} nodi):**\n\n` +
           poles
             .map(
               (p) =>
                 `• **${p.id}** (*${p.address}*): Qualità aria **AQI ${p.sensor.aqi} (${p.sensor.aqiLabel})**, PM2.5 \`${p.sensor.pm25}\`, Temp \`${p.sensor.temp}\` — LED: *${p.sensor.ledStatus}*`
             )
             .join("\n") +
-          `\n\n⚠️ **Insight AI:** Il palo \`QR-MEDA-03\` (Via XXIV Maggio) rileva traffico intenso (112 veicoli/ora) e AQI 45: consigliato dimming LED adattivo e controllo lampione secondario.`
+          `\n\n⚠️ **Insight AI:** Il nodo \`QR-MI-LORETO-03\` (Corso Buenos Aires) registra traffico intenso (1.380 veicoli/h) e PM2.5 a 19 µg/m³.`
       };
     }
 
-    if (q.match(/punti|badge|premi|reward|impact|score|sconto|bolletta/)) {
+    if (q.match(/punti|badge|premi|reward|impact|score|sconto|bolletta|atm|bikemi/)) {
       return {
-        source: "WhatsCity AI Core · Gamification",
-        text: `🏅 **Il tuo profilo Civico (${appState.currentUser.name}):**\n\n` +
+        source: "WhatsCity AI Core · Gamification Milano",
+        text:
+          `🏅 **Profilo Civico di ${appState.currentUser.name} (Milano):**\n\n` +
           `• **City Impact Score attuale:** \`${appState.currentUser.impactScore} punti\`\n` +
-          `• **Come guadagnare punti:**\n` +
-          `  - **+15 pt** per ogni nuova segnalazione geolocalizzata o via QR Code\n` +
-          `  - **+10 pt** quando confermi con foto la risoluzione di un intervento\n` +
-          `• **Premi riscattabili subito nella tab Profilo:** Bonus 10€ Bolletta AEB/A2A (100 pt), Voucher Bike Sharing (60 pt), Buono Spesa Zero Waste (80 pt).`
+          `• **Premi riscattabili nella tab Profilo:**\n` +
+          `  - ⚡ **Bonus 15€ Bolletta A2A Energia Milano** (120 pt)\n` +
+          `  - 🚲 **Abbonamento BikeMi + 3 Biglietti ATM** (70 pt)\n` +
+          `  - 🏛️ **Pass Musei Civici Milano / Triennale** (90 pt)\n` +
+          `  - 🌳 **Adotta un Albero con ForestaMi** (150 pt)`
       };
     }
 
-    if (q.match(/aziend|impres|esg|incaric|lavor/)) {
+    if (q.match(/aziend|impres|esg|incaric|lavor|amsa/)) {
       return {
-        source: "WhatsCity AI Core · Portale B2B",
-        text: `🏢 **Opportunità per le Aziende Locali (Imprese Virtuose):**\n\n` +
-          `Ci sono **${openReports.length} segnalazioni aperte** pronte per essere prese in carico:\n` +
-          openReports.map((r) => `• **${r.title}** (${r.address}) — Settore: *${r.category}*`).join("\n") +
-          `\n\nCompletando un intervento con foto post-lavori, l'azienda ottiene **+50 punti ESG Reputation**, visibilità diretta nel feed cittadino e certificazione verso la PA.`
+        source: "WhatsCity AI Core · Portale B2B Milano",
+        text:
+          `🏢 **Ticket Aperti per Imprese & Utility a Milano (${openReports.length} interventi):**\n\n` +
+          openReports
+            .map((r) => `• **${r.title}** (${r.address}, *${r.zone}*) — Settore: *${r.category}*`)
+            .join("\n") +
+          `\n\nCompletando l'intervento con foto Prima/Dopo, l'impresa ottiene **+50 punti ESG Reputation** nell'Albo Imprese Virtuose del Comune di Milano.`
       };
     }
 
     return {
-      source: "WhatsCity AI Core",
-      text: `Ciao **${appState.currentUser.name}**! 👋 Sono **WhatsCity AI Copilot**.\n\n` +
-        `In questo momento a **Meda** monitoriamo **${reports.length} segnalazioni** (${openReports.length} aperte, ${inProgressReports.length} in corso, ${resolvedReports.length} risolte) e **${poles.length} Pali Intelligenti A2A**.\n\n` +
-        `Puoi chiedermi:\n` +
-        `• *"Genera un piano di priorità per la PA"*\n` +
-        `• *"Qual è la qualità dell'aria dei sensori IoT A2A?"*\n` +
-        `• *"Quali appalti/incarichi sono aperti per le aziende?"*\n` +
-        `• *"Come funzionano i premi e il City Impact Score?"*`
+      source: "WhatsCity AI Core · Milano Smart City",
+      text:
+        `Ciao **${appState.currentUser.name}**! 👋 Sono **WhatsCity AI Copilot** per **Milano Smart City**.\n\n` +
+        `In questo momento a **Milano** monitoriamo **${reports.length} segnalazioni**, **${poles.length} Pali Intelligenti A2A** e **${cameras.length} Telecamere Urbane Live** (Duomo, Porta Nuova, Navigli, Buenos Aires, Niguarda/Seveso).\n\n` +
+        `Prova a chiedermi:\n` +
+        `• *"Mostrami lo stato delle telecamere live e del Seveso"*\n` +
+        `• *"Genera il piano di priorità PA per i Municipi di Milano"*\n` +
+        `• *"Qual è la qualità dell'aria sui Pali IoT A2A?"*\n` +
+        `• *"Come riscatto i premi ATM, BikeMi e A2A Energia?"*`
     };
   }
 };
@@ -265,10 +288,10 @@ window.WhatsCityAICopilotModal = function WhatsCityAICopilotModal({
   };
 
   const quickPrompts = [
-    "📊 Piano d'azione prioritario PA",
+    "📹 Stato Telecamere Live & Seveso",
+    "📊 Piano d'azione prioritario PA Milano",
     "📡 Analisi sensori IoT Pali A2A",
-    "🏢 Segnalazioni aperte per Aziende",
-    "🏅 Come riscattare i premi Impact Score?"
+    "🚲 Premi ATM, BikeMi & A2A Energia"
   ];
 
   const handleSend = async (textToSend) => {

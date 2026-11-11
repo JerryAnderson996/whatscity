@@ -5,16 +5,33 @@ window.WhatsCityCompanyView = function WhatsCityCompanyView({
   onResolveReport,
   onSelectReport
 }) {
-  const [selectedCompany, setSelectedCompany] = React.useState("Eco Azienda Brianza");
+  const [selectedCompany, setSelectedCompany] = React.useState(
+    "A2A Illuminazione Pubblica & Smart City"
+  );
   const [completingTaskId, setCompletingTaskId] = React.useState(null);
   const [afterPhotoUrl, setAfterPhotoUrl] = React.useState(
     "https://images.unsplash.com/photo-1584467735815-f778f274e296?w=800&auto=format&fit=crop&q=80"
   );
 
   const companies = [
-    { name: "Eco Azienda Brianza", score: 480, badge: "Impresa Virtuosa Gold 🏅", sector: "Verde & Ambiente" },
-    { name: "AEB Luce & Reti S.p.A.", score: 620, badge: "Partner Smart City A2A ⚡", sector: "Illuminazione & IoT" },
-    { name: "EdilStrade Briantea S.r.l.", score: 340, badge: "Impresa Virtuosa Silver ⭐", sector: "Manutenzione Stradale" }
+    {
+      name: "A2A Illuminazione Pubblica & Smart City",
+      score: 780,
+      badge: "Partner Smart City A2A ⚡",
+      sector: "Illuminazione LED & Rete IoT Milano"
+    },
+    {
+      name: "AMSA — Gruppo A2A Milano",
+      score: 710,
+      badge: "Impresa Virtuosa Gold 🏅",
+      sector: "Igiene Urbana & Economia Circolare"
+    },
+    {
+      name: "MM S.p.A. & Impresa Strade Milano",
+      score: 540,
+      badge: "Partner Infrastrutture & Idro ⭐",
+      sector: "Manutenzione Strade, Pavé & Servizio Idrico"
+    }
   ];
 
   const activeCompanyObj = companies.find((c) => c.name === selectedCompany) || companies[0];
@@ -468,37 +485,48 @@ window.WhatsCityProfileView = function WhatsCityProfileView({
   );
 };
 
-// Vista 5: Dashboard Pubblica Amministrazione, Open Data & Analisi IoT (Pagina 9 Destra + Pagina 12 PDF)
+// Vista 5: Dashboard Pubblica Amministrazione Milano, Telecamere Live, Open Data & Analisi IoT
 window.WhatsCityDashboardView = function WhatsCityDashboardView({
   reports,
   qrPoles,
+  cityCameras,
   onChangePriority,
   onSelectReport,
   onOpenAICopilot
 }) {
-  const totalSignals = 24 + (reports.length - 5);
-  const totalProposals = 15;
-  const activeProjects = reports.filter((r) => r.status === "in_progress").length + 6;
+  const totalSignals = 42 + (reports.length - 5);
+  const totalProposals = 19;
+  const activeProjects = reports.filter((r) => r.status === "in_progress").length + 11;
 
   const zoneBars = [
-    { zone: "Nord", count: 4, height: "h-10" },
-    { zone: "Ovest", count: 9, height: "h-20" },
-    { zone: "Centro", count: 14, height: "h-28" },
-    { zone: "Sud", count: 8, height: "h-16" },
-    { zone: "Est", count: 5, height: "h-12" }
+    { zone: "Mun. 1 Duomo", count: 16, height: "h-28" },
+    { zone: "Mun. 3 Loreto", count: 12, height: "h-20" },
+    { zone: "Mun. 6 Navigli", count: 14, height: "h-24" },
+    { zone: "Mun. 9 Isola/Niguarda", count: 18, height: "h-32" },
+    { zone: "Altri Mun.", count: 9, height: "h-16" }
   ];
 
-  // Funzione Export Open Data Pubblici (CSV / JSON - Pagina 12 PDF "Trasparenza e open data pubblici")
+  // Funzione Export Open Data Pubblici Comune di Milano
   const handleExportOpenData = (format) => {
     let content = "";
     let mime = "application/json";
-    let filename = `whatscity-opendata-meda.${format}`;
+    let filename = `whatscity-opendata-milano.${format}`;
 
     if (format === "json") {
-      content = JSON.stringify({ exportedAt: new Date().toISOString(), reports, qrPoles }, null, 2);
+      content = JSON.stringify(
+        {
+          city: "Milano",
+          exportedAt: new Date().toISOString(),
+          reports,
+          qrPoles,
+          cityCameras
+        },
+        null,
+        2
+      );
     } else {
       mime = "text/csv";
-      const header = "ID,Titolo,Categoria,Priorita,Stato,Indirizzo,Zona,Azienda,Grazie\n";
+      const header = "ID,Titolo,Categoria,Priorita,Stato,Indirizzo,Municipio,Azienda,Grazie\n";
       const rows = reports
         .map(
           (r) =>
@@ -545,7 +573,7 @@ window.WhatsCityDashboardView = function WhatsCityDashboardView({
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-extrabold text-slate-900 text-base">Dati raccolti</h3>
           <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
-            Comune di Meda · Live
+            Comune di Milano · Live
           </span>
         </div>
 
@@ -629,6 +657,63 @@ window.WhatsCityDashboardView = function WhatsCityDashboardView({
             <span key={b.zone} className="flex-1 text-center">
               {b.zone}
             </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Rete Telecamere Urbane Live & Computer Vision Milano */}
+      <div className="bg-slate-950 text-white rounded-3xl p-4 shadow-lg border border-sky-500/30">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400 block">
+              Control Room Mobility, ZTL & Idro Seveso
+            </span>
+            <h3 className="font-extrabold text-sm">
+              📹 Rete Telecamere Live Milano (AI Vision)
+            </h3>
+          </div>
+          <span className="text-xs bg-red-500/20 text-red-300 border border-red-500/30 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+            <span>{(cityCameras || []).length} Live</span>
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2.5">
+          {(cityCameras || []).map((cam) => (
+            <div
+              key={cam.id}
+              className="bg-white/5 border border-white/10 rounded-2xl p-2.5 flex items-center gap-3"
+            >
+              <img
+                src={cam.previewImage}
+                alt={cam.name}
+                className="w-16 h-14 rounded-xl object-cover flex-shrink-0 border border-white/15"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-bold text-xs text-white truncate">
+                    {cam.name}
+                  </span>
+                  <span className="text-[9px] font-mono text-sky-300 flex-shrink-0">
+                    {cam.id}
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-300 truncate mt-0.5">
+                  🚗 {cam.aiAnalytics.vehiclesPerHour}
+                </div>
+                <div
+                  className={`text-[10px] font-bold truncate mt-0.5 ${
+                    cam.aiAnalytics.alertLevel === "critical"
+                      ? "text-red-400"
+                      : cam.aiAnalytics.alertLevel === "warning"
+                      ? "text-amber-300"
+                      : "text-emerald-300"
+                  }`}
+                >
+                  🤖 {cam.aiAnalytics.anomalyDetected}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>

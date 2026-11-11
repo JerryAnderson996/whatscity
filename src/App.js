@@ -1,6 +1,6 @@
 // App Principale WhatsCity: Social Network Civico con Registrazione/Login DB, AI Copilot, Mappe IoT e 5 Tab
 window.WhatsCityApp = function WhatsCityApp() {
-  const STORAGE_KEY = "whatscity_state_v3";
+  const STORAGE_KEY = "whatscity_state_milano_v4";
 
   const [state, setState] = React.useState(() => {
     try {
@@ -709,7 +709,7 @@ window.WhatsCityApp = function WhatsCityApp() {
               <div className="bg-white rounded-3xl p-3 shadow-xs border border-slate-200/80">
                 <div className="flex items-center justify-between mb-2 px-1">
                   <span className="text-[11px] font-extrabold text-slate-800">
-                    👥 Community Attiva a Meda ({(state.users || []).length} iscritti)
+                    👥 Community Attiva a Milano ({(state.users || []).length} iscritti)
                   </span>
                   <button
                     onClick={() => setIsAuthModalOpen(true)}
@@ -947,11 +947,12 @@ window.WhatsCityApp = function WhatsCityApp() {
             </div>
           )}
 
-          {/* TAB 2: MAPPA INTERATTIVA + SENSORI IOT A2A (Pagina 8 Centro PDF) */}
+          {/* TAB 2: MAPPA INTERATTIVA + TELECAMERE LIVE + SENSORI IOT A2A MILANO */}
           {activeTab === "map" && (
             <window.WhatsCityMapView
               reports={state.reports}
               qrPoles={state.qrPoles}
+              cityCameras={state.cityCameras}
               onSelectReport={(rep) => setSelectedReportDetail(rep)}
               onOpenNewReportFromPole={(pole) => {
                 setPreselectedCoords(null);
@@ -1000,11 +1001,12 @@ window.WhatsCityApp = function WhatsCityApp() {
             </div>
           )}
 
-          {/* TAB 5: DASHBOARD PA, OPEN DATA & ANALISI DATI (Pagina 9 Destra PDF) */}
+          {/* TAB 5: DASHBOARD PA, TELECAMERE LIVE, OPEN DATA & ANALISI DATI */}
           {activeTab === "dashboard" && (
             <window.WhatsCityDashboardView
               reports={state.reports}
               qrPoles={state.qrPoles}
+              cityCameras={state.cityCameras}
               onChangePriority={handleChangePriority}
               onSelectReport={(rep) => setSelectedReportDetail(rep)}
               onOpenAICopilot={() => setIsAICopilotOpen(true)}
