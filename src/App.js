@@ -1,12 +1,15 @@
-// App Principale WhatsCity: Feed Social Cittadino, Dettaglio Ticket, AI Copilot, Notifiche, 5 Tab
+// App Principale WhatsCity: Social Network Civico con Registrazione/Login DB, AI Copilot, Mappe IoT e 5 Tab
 window.WhatsCityApp = function WhatsCityApp() {
-  const STORAGE_KEY = "whatscity_state_v2";
+  const STORAGE_KEY = "whatscity_state_v3";
 
   const [state, setState] = React.useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.users && parsed.reports) {
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn("LocalStorage non disponibile:", e);
@@ -14,6 +17,9 @@ window.WhatsCityApp = function WhatsCityApp() {
     return window.WHATSCITY_INITIAL_DATA;
   });
 
+  const [backendStatusLabel, setBackendStatusLabel] = React.useState(
+    "Database Persistente Attivo 🟢"
+  );
   const [activeTab, setActiveTab] = React.useState("home"); // home, map, activity, profile, dashboard
   const [searchQuery, setSearchQuery] = React.useState("");
   const [showSearchBar, setShowSearchBar] = React.useState(false);
@@ -22,13 +28,37 @@ window.WhatsCityApp = function WhatsCityApp() {
   // Modali
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [isAICopilotOpen, setIsAICopilotOpen] = React.useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = React.useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = React.useState(false);
   const [preselectedPole, setPreselectedPole] = React.useState(null);
   const [preselectedCoords, setPreselectedCoords] = React.useState(null);
   const [selectedReportDetail, setSelectedReportDetail] = React.useState(null);
+  const [viewedPublicProfile, setViewedPublicProfile] = React.useState(null);
   const [newCommentText, setNewCommentText] = React.useState("");
   const [toastMessage, setToastMessage] = React.useState(null);
 
+  // Sincronizzazione iniziale dal Backend (Supabase Cloud o Server Locale /api/db)
+  React.useEffect(() => {
+    let mounted = true;
+    if (window.WhatsCityAuthService) {
+      window.WhatsCityAuthService.syncFromBackend(state).then((res) => {
+        if (!mounted || !res) return;
+        setBackendStatusLabel(res.backendType);
+        if (res.users && res.reports) {
+          setState((prev) => ({
+            ...prev,
+            users: res.users,
+            reports: res.reports
+          }));
+        }
+      });
+    }
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Salvataggio automatico su LocalStorage + sincronizzazione Backend
   React.useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -39,33 +69,107 @@ window.WhatsCityApp = function WhatsCityApp() {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3400);
+    }, 3500);
   };
 
   const unreadNotifCount = (state.notifications || []).filter((n) => !n.read).length;
 
-  // Azione: Ringrazia ("Grazie" con cuore come in Pagina 8 PDF)
-  const handleToggleThanks = (reportId) => {
-    setState((prev) => ({
-      ...prev,
-      reports: prev.reports.map((r) => {
-        if (r.id !== reportId) return r;
-        const already = r.thankedByMe;
-        return {
-          ...r,
-          thankedByMe: !already,
-          thanksCount: already ? r.thanksCount - 1 : r.thanksCount + 1
-        };
-      })
-    }));
+  // Registrazione di un nuovo utente (Cittadino, Azienda, PA) nel Database
+  const handleRegisterUser = (newUser) => {
+    const welcomeNotif = {
+      id: "not-" + Date.now(),
+      title: `Benvenuto in WhatsCity, ${newUser.name}! 🎉`,
+      body: `Il tuo profilo (${newUser.roleBadge}) è attivo nel database con +50 punti City Impact Score di bonus.`,
+      time: "Adesso",
+      read: false,
+      type: "reward"
+    };
+
+    setState((prev) => {
+      const updated = {
+        ...prev,
+        users: [newUser, ...(prev.users || [])],
+        currentUser: newUser,
+        notifications: [welcomeNotif, ...(prev.notifications || [])]
+      };
+      if (window.WhatsCityAuthService) {
+        window.WhatsCityAuthService.persistToBackend(updated, newUser, null);
+      }
+      return updated;
+    });
+
+    showToast(`Account creato! Benvenuto/a ${newUser.name} (+50 Impact Score) 🎉`);
   };
 
-  // Azione: Crea nuova segnalazione geolocalizzata
+  // Login o Switch ad un altro utente registrato nel DB
+  const handleLoginSuccess = (userObj) => {
+    const defaultBadges = window.WHATSCITY_INITIAL_DATA.currentUser.badges;
+    const enrichedUser = {
+      ...userObj,
+      badges: userObj.badges && userObj.badges.length ? userObj.badges : defaultBadges,
+      redeemedRewards: userObj.redeemedRewards || []
+    };
+
+    setState((prev) => ({
+      ...prev,
+      currentUser: enrichedUser
+    }));
+
+    // Se l'utente è un'azienda o una PA, possiamo opzionalmente mostrare un messaggio contestuale
+    showToast(`Accesso effettuato come ${userObj.name} (${userObj.roleBadge}) 🔐`);
+  };
+
+  // Visualizza il profilo pubblico di un autore cliccando sul suo nome/avatar nel feed
+  const handleOpenAuthorProfile = (authorName) => {
+    const found = (state.users || []).find(
+      (u) => u.name.toLowerCase() === (authorName || "").toLowerCase()
+    );
+    if (found) {
+      setViewedPublicProfile(found);
+    } else {
+      setViewedPublicProfile({
+        name: authorName,
+        roleBadge: "Membro Community WhatsCity",
+        userType: "Utente Verificato",
+        avatar:
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+        bio: "Partecipa attivamente al miglioramento urbano di Meda.",
+        neighborhood: "Meda",
+        impactScore: 110,
+        reportsCount: 4
+      });
+    }
+  };
+
+  // Azione: Ringrazia ("Grazie" con cuore come in Pagina 8 PDF)
+  const handleToggleThanks = (reportId) => {
+    setState((prev) => {
+      const updated = {
+        ...prev,
+        reports: prev.reports.map((r) => {
+          if (r.id !== reportId) return r;
+          const already = r.thankedByMe;
+          return {
+            ...r,
+            thankedByMe: !already,
+            thanksCount: already ? r.thanksCount - 1 : r.thanksCount + 1
+          };
+        })
+      };
+      if (window.WhatsCityAuthService) {
+        window.WhatsCityAuthService.persistToBackend(updated, null, null);
+      }
+      return updated;
+    });
+  };
+
+  // Azione: Crea nuova segnalazione geolocalizzata associata all'utente loggato
   const handleCreateReport = (newRepData) => {
     const created = {
       id: "rep-" + Date.now(),
+      authorId: state.currentUser.id,
       authorName: state.currentUser.name,
-      authorRole: state.currentUser.userType,
+      authorRole: state.currentUser.userType || state.currentUser.roleBadge,
       authorAvatar: state.currentUser.avatar,
       title: newRepData.title,
       description: newRepData.description,
@@ -90,154 +194,220 @@ window.WhatsCityApp = function WhatsCityApp() {
 
     const newNotif = {
       id: "not-" + Date.now(),
-      title: "Segnalazione pubblicata con successo!",
-      body: `Hai guadagnato +15 City Impact Score per '${created.title}'.`,
+      title: "Segnalazione pubblicata nel Feed Social!",
+      body: `${state.currentUser.name} ha guadagnato +15 City Impact Score per '${created.title}'.`,
       time: "Adesso",
       read: false,
       type: "reward"
     };
 
-    setState((prev) => ({
-      ...prev,
-      currentUser: {
+    setState((prev) => {
+      const newScore = (prev.currentUser.impactScore || 0) + 15;
+      const updatedCurrentUser = {
         ...prev.currentUser,
-        impactScore: prev.currentUser.impactScore + 15
-      },
-      notifications: [newNotif, ...(prev.notifications || [])],
-      reports: [created, ...prev.reports]
-    }));
+        impactScore: newScore,
+        reportsCount: (prev.currentUser.reportsCount || 0) + 1
+      };
+      const updatedUsers = (prev.users || []).map((u) =>
+        u.id === updatedCurrentUser.id ? updatedCurrentUser : u
+      );
+      const updatedState = {
+        ...prev,
+        currentUser: updatedCurrentUser,
+        users: updatedUsers,
+        notifications: [newNotif, ...(prev.notifications || [])],
+        reports: [created, ...prev.reports]
+      };
 
-    showToast("Segnalazione pubblicata! +15 City Impact Score 🌱");
+      if (window.WhatsCityAuthService) {
+        window.WhatsCityAuthService.persistToBackend(
+          updatedState,
+          updatedCurrentUser,
+          created
+        );
+      }
+      return updatedState;
+    });
+
+    showToast("Post pubblicato sul Feed Social! +15 City Impact Score 🌱");
   };
 
   // Azione Azienda: Prendi in carico ticket
   const handleTakeCharge = (reportId, companyName) => {
-    setState((prev) => ({
-      ...prev,
-      reports: prev.reports.map((r) =>
-        r.id === reportId
-          ? {
-              ...r,
-              status: "in_progress",
-              statusLabel: "In attesa di completamento",
-              assignedCompany: companyName,
-              comments: [
-                ...r.comments,
-                {
-                  author: companyName,
-                  text: "Segnalazione presa in carico. Squadra operativa assegnata.",
-                  time: "Adesso"
-                }
-              ]
-            }
-          : r
-      )
-    }));
-    showToast(`Ticket preso in carico da ${companyName} 🛠️`);
+    const actorName =
+      state.currentUser.role === "company" ? state.currentUser.name : companyName;
+
+    setState((prev) => {
+      const updated = {
+        ...prev,
+        reports: prev.reports.map((r) =>
+          r.id === reportId
+            ? {
+                ...r,
+                status: "in_progress",
+                statusLabel: "In attesa di completamento",
+                assignedCompany: actorName,
+                comments: [
+                  ...r.comments,
+                  {
+                    author: actorName,
+                    text: "Segnalazione presa in carico. Squadra operativa assegnata.",
+                    time: "Adesso"
+                  }
+                ]
+              }
+            : r
+        )
+      };
+      if (window.WhatsCityAuthService) {
+        window.WhatsCityAuthService.persistToBackend(updated, null, null);
+      }
+      return updated;
+    });
+    showToast(`Ticket preso in carico da ${actorName} 🛠️`);
   };
 
   // Azione Azienda/Cittadino: Segna come Risolto con foto post-intervento
   const handleResolveReport = (reportId, companyName, afterImageUrl) => {
-    setState((prev) => ({
-      ...prev,
-      reports: prev.reports.map((r) =>
-        r.id === reportId
-          ? {
-              ...r,
-              status: "resolved",
-              statusLabel: "Completato",
-              assignedCompany: companyName || r.assignedCompany || "Impresa Locale",
-              afterImage:
-                afterImageUrl ||
-                r.afterImage ||
-                "https://images.unsplash.com/photo-1584467735815-f778f274e296?w=800&auto=format&fit=crop&q=80",
-              comments: [
-                ...r.comments,
-                {
-                  author: companyName || r.assignedCompany || "Team Tecnico",
-                  text: "Intervento completato e documentato con foto post-lavori! ✅",
-                  time: "Adesso"
-                }
-              ]
-            }
-          : r
-      )
-    }));
+    const actorName =
+      state.currentUser.role === "company"
+        ? state.currentUser.name
+        : companyName || "Impresa Locale";
+
+    setState((prev) => {
+      const updated = {
+        ...prev,
+        reports: prev.reports.map((r) =>
+          r.id === reportId
+            ? {
+                ...r,
+                status: "resolved",
+                statusLabel: "Completato",
+                assignedCompany: actorName,
+                afterImage:
+                  afterImageUrl ||
+                  r.afterImage ||
+                  "https://images.unsplash.com/photo-1584467735815-f778f274e296?w=800&auto=format&fit=crop&q=80",
+                comments: [
+                  ...r.comments,
+                  {
+                    author: actorName,
+                    text: "Intervento completato e documentato con foto post-lavori! ✅",
+                    time: "Adesso"
+                  }
+                ]
+              }
+            : r
+        )
+      };
+      if (window.WhatsCityAuthService) {
+        window.WhatsCityAuthService.persistToBackend(updated, null, null);
+      }
+      return updated;
+    });
     showToast("Intervento completato! +50 Punti ESG Impresa Virtuosa 🏆");
   };
 
-  // Azione Cittadino (Step 1 Pagina 10 PDF): Conferma risoluzione sul campo (+10 pt)
+  // Azione Cittadino: Conferma risoluzione sul campo (+10 pt)
   const handleCitizenConfirmResolution = (reportId) => {
-    setState((prev) => ({
-      ...prev,
-      currentUser: {
+    setState((prev) => {
+      const updatedUser = {
         ...prev.currentUser,
-        impactScore: prev.currentUser.impactScore + 10
-      },
-      reports: prev.reports.map((r) =>
-        r.id === reportId
-          ? {
-              ...r,
-              citizenConfirmed: true,
-              comments: [
-                ...r.comments,
-                {
-                  author: prev.currentUser.name + " (Cittadino Verificatore)",
-                  text: "Ho verificato di persona: problema risolto perfettamente! 👏",
-                  time: "Adesso"
-                }
-              ]
-            }
-          : r
-      )
-    }));
+        impactScore: (prev.currentUser.impactScore || 0) + 10
+      };
+      const updated = {
+        ...prev,
+        currentUser: updatedUser,
+        users: (prev.users || []).map((u) => (u.id === updatedUser.id ? updatedUser : u)),
+        reports: prev.reports.map((r) =>
+          r.id === reportId
+            ? {
+                ...r,
+                citizenConfirmed: true,
+                comments: [
+                  ...r.comments,
+                  {
+                    author: prev.currentUser.name + " (Verifica Cittadina)",
+                    text: "Ho verificato di persona: problema risolto perfettamente! 👏",
+                    time: "Adesso"
+                  }
+                ]
+              }
+            : r
+        )
+      };
+      if (window.WhatsCityAuthService) {
+        window.WhatsCityAuthService.persistToBackend(updated, updatedUser, null);
+      }
+      return updated;
+    });
     showToast("Risoluzione confermata dal cittadino! +10 City Impact Score 🌟");
   };
 
   // Azione Cittadino: Riscatta premio con City Impact Score
   const handleRedeemReward = (reward) => {
     if (state.currentUser.impactScore < reward.cost) return;
-    setState((prev) => ({
-      ...prev,
-      currentUser: {
+    setState((prev) => {
+      const updatedUser = {
         ...prev.currentUser,
         impactScore: prev.currentUser.impactScore - reward.cost,
         redeemedRewards: [...(prev.currentUser.redeemedRewards || []), reward.id]
+      };
+      const updated = {
+        ...prev,
+        currentUser: updatedUser,
+        users: (prev.users || []).map((u) => (u.id === updatedUser.id ? updatedUser : u))
+      };
+      if (window.WhatsCityAuthService) {
+        window.WhatsCityAuthService.persistToBackend(updated, updatedUser, null);
       }
-    }));
+      return updated;
+    });
     showToast(`Premio riscattato: ${reward.title}! 🎁`);
   };
 
   // Azione PA: Cambia Priorità
   const handleChangePriority = (reportId, newPriority) => {
-    setState((prev) => ({
-      ...prev,
-      reports: prev.reports.map((r) =>
-        r.id === reportId ? { ...r, priority: newPriority } : r
-      )
-    }));
+    setState((prev) => {
+      const updated = {
+        ...prev,
+        reports: prev.reports.map((r) =>
+          r.id === reportId ? { ...r, priority: newPriority } : r
+        )
+      };
+      if (window.WhatsCityAuthService) {
+        window.WhatsCityAuthService.persistToBackend(updated, null, null);
+      }
+      return updated;
+    });
     showToast(`Priorità aggiornata a ${newPriority} dalla PA`);
   };
 
-  // Aggiungi commento nel dettaglio ticket
+  // Aggiungi commento nel dettaglio ticket col nome dell'utente loggato
   const handleAddComment = (e) => {
     e.preventDefault();
     if (!newCommentText.trim() || !selectedReportDetail) return;
 
     const commentObj = {
-      author: state.currentUser.name,
+      author: `${state.currentUser.name} (${state.currentUser.roleBadge})`,
       text: newCommentText.trim(),
       time: "Adesso"
     };
 
-    setState((prev) => ({
-      ...prev,
-      reports: prev.reports.map((r) =>
-        r.id === selectedReportDetail.id
-          ? { ...r, comments: [...r.comments, commentObj] }
-          : r
-      )
-    }));
+    setState((prev) => {
+      const updated = {
+        ...prev,
+        reports: prev.reports.map((r) =>
+          r.id === selectedReportDetail.id
+            ? { ...r, comments: [...r.comments, commentObj] }
+            : r
+        )
+      };
+      if (window.WhatsCityAuthService) {
+        window.WhatsCityAuthService.persistToBackend(updated, null, null);
+      }
+      return updated;
+    });
 
     setSelectedReportDetail((prev) => ({
       ...prev,
@@ -250,7 +420,7 @@ window.WhatsCityApp = function WhatsCityApp() {
   const handleResetDemo = () => {
     localStorage.removeItem(STORAGE_KEY);
     setState(window.WHATSCITY_INITIAL_DATA);
-    showToast("Dati demo ripristinati allo stato iniziale della presentazione!");
+    showToast("Database demo ripristinato allo stato iniziale della presentazione!");
   };
 
   const filteredFeed = state.reports.filter((r) => {
@@ -258,6 +428,7 @@ window.WhatsCityApp = function WhatsCityApp() {
       !searchQuery.trim() ||
       r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.authorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.category.toLowerCase().includes(searchQuery.toLowerCase());
     const matchCat =
       selectedCategoryChip === "Tutte" || r.category === selectedCategoryChip;
@@ -283,39 +454,61 @@ window.WhatsCityApp = function WhatsCityApp() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col lg:flex-row items-center justify-center lg:gap-8 p-0 sm:p-4">
-      {/* Pannello Laterale Desktop (Presentazione Pitch & Controlli Demo Rapidi) */}
+      {/* Pannello Laterale Desktop (Controllo Social Network, Utenti DB, Viste Pitch e AI) */}
       <div className="hidden lg:flex flex-col justify-between w-80 bg-[#052e2b] text-white rounded-3xl p-6 shadow-2xl border border-emerald-500/30 self-stretch max-h-[860px]">
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {/* Logo WhatsCity (Pagina 3 PDF) */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-500 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg">
               ✓
             </div>
             <div>
               <h1 className="text-xl font-black tracking-tight">
                 Whats<span className="text-emerald-400">City</span>
               </h1>
-              <p className="text-xs text-emerald-200/80 font-medium">
+              <p className="text-[11px] text-emerald-200/80 font-medium">
                 La città che ascolta. E risponde.
               </p>
             </div>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 text-xs space-y-1.5">
-            <div className="text-emerald-300 font-bold uppercase tracking-wider text-[10px]">
-              Re-GenerAction · AEB Gruppo A2A
+          {/* Card Utente Attualmente Loggato + Bottone Iscriviti / Cambia Account */}
+          <div className="bg-white/10 border border-emerald-400/30 rounded-2xl p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300">
+                Profilo Social Attivo
+              </span>
+              <span className="text-[10px] text-emerald-200 font-bold">
+                {(state.users || []).length} iscritti nel DB
+              </span>
             </div>
-            <p className="text-emerald-100/90 leading-relaxed">
-              Ecosistema urbano collaborativo per{" "}
-              <strong>Cittadini, Aziende e PA</strong> con sensori IoT Pali
-              Intelligenti A2A e <strong>WhatsCity AI Copilot</strong>.
-            </p>
+            <div className="flex items-center gap-2.5">
+              <img
+                src={state.currentUser.avatar}
+                alt={state.currentUser.name}
+                className="w-10 h-10 rounded-full object-cover border-2 border-emerald-400"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="font-extrabold text-xs text-white truncate">
+                  {state.currentUser.name}
+                </div>
+                <div className="text-[10px] text-emerald-300 truncate">
+                  {state.currentUser.roleBadge}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="w-full bg-white hover:bg-emerald-50 text-slate-950 font-extrabold text-[11px] py-1.5 rounded-xl shadow-xs transition"
+            >
+              👥 Iscriviti / Cambia Utente o Ruolo
+            </button>
           </div>
 
           {/* Selettore Ruolo / Interfaccia (Pagine 8 e 9 PDF) */}
           <div className="space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 block">
-              Schermate del Progetto:
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 block">
+              Schermate dell'Applicazione:
             </span>
             {[
               { id: "home", label: "📱 1. Feed Social Cittadino", sub: "Pag. 8 SX" },
@@ -327,7 +520,7 @@ window.WhatsCityApp = function WhatsCityApp() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full text-left px-3.5 py-2.5 rounded-2xl text-xs transition flex items-center justify-between border ${
+                className={`w-full text-left px-3.5 py-2 rounded-2xl text-xs transition flex items-center justify-between border ${
                   activeTab === item.id
                     ? "bg-emerald-500 text-slate-950 font-extrabold border-emerald-400 shadow-md"
                     : "bg-white/5 text-emerald-100 hover:bg-white/10 border-white/10"
@@ -369,16 +562,16 @@ window.WhatsCityApp = function WhatsCityApp() {
             onClick={handleResetDemo}
             className="w-full text-[11px] text-emerald-300/70 hover:text-white py-1 transition"
           >
-            ↺ Ripristina dati iniziali della demo
+            ↺ Ripristina DB iniziale della demo
           </button>
         </div>
       </div>
 
       {/* Cornice Smartphone Principale (Design fedele alle Pagine 8 e 9 del PDF) */}
       <div className="w-full sm:w-[420px] h-screen sm:h-[860px] bg-[#f4f7f6] sm:rounded-[42px] shadow-2xl overflow-hidden flex flex-col relative sm:border-[10px] sm:border-slate-800">
-        {/* Top Header Verde Smeraldo (Identico al prototipo Pagina 8 e 9) */}
-        <header className="bg-[#10b981] text-slate-950 px-4 py-3.5 flex items-center justify-between shadow-sm z-30 flex-shrink-0">
-          <div className="flex items-center gap-2">
+        {/* Top Header Verde Smeraldo (Identico al prototipo Pagina 8 e 9 + Avatar Account Loggato) */}
+        <header className="bg-[#10b981] text-slate-950 px-3.5 py-3 flex items-center justify-between shadow-sm z-30 flex-shrink-0">
+          <div className="flex items-center gap-1.5">
             {activeTab === "activity" || activeTab === "dashboard" ? (
               <button
                 onClick={() => setActiveTab("home")}
@@ -408,13 +601,29 @@ window.WhatsCityApp = function WhatsCityApp() {
                 )}
               </button>
             )}
+
+            {/* Pillola Utente Loggato / Bottone Registrazione & Login */}
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="flex items-center gap-1.5 bg-white/90 hover:bg-white text-slate-900 pl-1 pr-2.5 py-1 rounded-full shadow-xs transition"
+              title="Iscriviti, Accedi o Cambia Profilo"
+            >
+              <img
+                src={state.currentUser.avatar}
+                alt={state.currentUser.name}
+                className="w-5 h-5 rounded-full object-cover"
+              />
+              <span className="text-[11px] font-extrabold max-w-[78px] truncate">
+                {state.currentUser.name.split(" ")[0]}
+              </span>
+            </button>
           </div>
 
-          <h1 className="font-extrabold text-lg tracking-tight text-slate-900">
+          <h1 className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900">
             {getHeaderTitle()}
           </h1>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {/* Bottone AI Copilot sempre accessibile nella Top Bar */}
             <button
               onClick={() => setIsAICopilotOpen(true)}
@@ -430,7 +639,7 @@ window.WhatsCityApp = function WhatsCityApp() {
                 setShowSearchBar(!showSearchBar);
               }}
               className="w-8 h-8 rounded-full hover:bg-black/10 flex items-center justify-center text-slate-900 font-bold"
-              title="Cerca segnalazioni"
+              title="Cerca segnalazioni o utenti"
             >
               🔍
             </button>
@@ -475,7 +684,7 @@ window.WhatsCityApp = function WhatsCityApp() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cerca per via, problema (es. lampione, rifiuti)..."
+              placeholder="Cerca per via, cittadino, azienda o problema..."
               className="w-full px-3.5 py-2 rounded-xl text-xs bg-white text-slate-900 focus:outline-none shadow-inner"
             />
           </div>
@@ -496,18 +705,77 @@ window.WhatsCityApp = function WhatsCityApp() {
           {/* TAB 1: HOME FEED SOCIAL CITTADINO (Pagina 8 Sinistra PDF) */}
           {activeTab === "home" && (
             <div className="p-3.5 space-y-3.5 pb-24">
-              {/* Banner Azione Rapida: Apri Segnalazione o Scansiona QR Palo A2A */}
+              {/* Barra Community / Stories Utenti Registrati nel DB */}
+              <div className="bg-white rounded-3xl p-3 shadow-xs border border-slate-200/80">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <span className="text-[11px] font-extrabold text-slate-800">
+                    👥 Community Attiva a Meda ({(state.users || []).length} iscritti)
+                  </span>
+                  <button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="text-[11px] font-extrabold text-emerald-700 hover:underline"
+                  >
+                    + Iscriviti / Accedi
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 overflow-x-auto pb-1 no-scrollbar">
+                  {/* Bottone rapido nuovo iscritto */}
+                  <button
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="flex flex-col items-center flex-shrink-0 w-14"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-emerald-100 border-2 border-dashed border-emerald-500 text-emerald-800 flex items-center justify-center font-black text-lg">
+                      +
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-800 mt-1 truncate w-full text-center">
+                      Nuovo
+                    </span>
+                  </button>
+
+                  {(state.users || []).map((u) => (
+                    <button
+                      key={u.id}
+                      onClick={() => setViewedPublicProfile(u)}
+                      className="flex flex-col items-center flex-shrink-0 w-14 group"
+                    >
+                      <div
+                        className={`w-12 h-12 rounded-full p-0.5 ${
+                          u.role === "company"
+                            ? "bg-gradient-to-tr from-amber-400 to-emerald-500"
+                            : u.role === "pa"
+                            ? "bg-gradient-to-tr from-sky-500 to-indigo-600"
+                            : "bg-gradient-to-tr from-emerald-500 to-teal-400"
+                        }`}
+                      >
+                        <img
+                          src={u.avatar}
+                          alt={u.name}
+                          className="w-full h-full rounded-full object-cover border-2 border-white group-hover:scale-105 transition"
+                        />
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-700 mt-1 truncate w-full text-center">
+                        {u.name.split(" ")[0]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Box "Scrivi un post" in stile Social Network */}
               <div className="bg-gradient-to-r from-[#052e2b] to-[#0a5c48] text-white rounded-3xl p-3.5 shadow-md flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black text-lg shadow">
-                    📷
-                  </div>
-                  <div>
-                    <h2 className="font-extrabold text-xs sm:text-sm">
-                      Vedi un problema in città?
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={state.currentUser.avatar}
+                    alt={state.currentUser.name}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-emerald-400 flex-shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <h2 className="font-extrabold text-xs sm:text-sm truncate">
+                      Ciao {state.currentUser.name.split(" ")[0]}, segnala in città
                     </h2>
-                    <p className="text-[11px] text-emerald-200/90">
-                      Pubblica con AI Triage o scansiona il QR sul palo A2A
+                    <p className="text-[11px] text-emerald-200/90 truncate">
+                      Post geolocalizzato, AI Triage o QR Palo A2A
                     </p>
                   </div>
                 </div>
@@ -553,16 +821,19 @@ window.WhatsCityApp = function WhatsCityApp() {
                   key={post.id}
                   className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/80 space-y-3 transition hover:shadow-md"
                 >
-                  {/* Intestazione Autore */}
+                  {/* Intestazione Autore Cliccabile per aprire il Profilo Pubblico */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
+                    <div
+                      onClick={() => handleOpenAuthorProfile(post.authorName)}
+                      className="flex items-center gap-2.5 cursor-pointer group"
+                    >
                       <img
                         src={post.authorAvatar}
                         alt={post.authorName}
-                        className="w-10 h-10 rounded-full object-cover border border-emerald-500/30"
+                        className="w-10 h-10 rounded-full object-cover border border-emerald-500/30 group-hover:ring-2 group-hover:ring-emerald-500 transition"
                       />
                       <div>
-                        <h3 className="font-extrabold text-slate-900 text-sm leading-tight">
+                        <h3 className="font-extrabold text-slate-900 text-sm leading-tight group-hover:text-emerald-700 transition">
                           {post.authorName}
                         </h3>
                         <span className="text-[11px] text-slate-500 block">
@@ -613,13 +884,16 @@ window.WhatsCityApp = function WhatsCityApp() {
                       </span>
                     )}
                     {post.assignedCompany && (
-                      <span className="bg-sky-50 text-sky-800 border border-sky-200 font-bold px-2.5 py-1 rounded-lg">
+                      <span
+                        onClick={() => handleOpenAuthorProfile(post.assignedCompany)}
+                        className="bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-bold px-2.5 py-1 rounded-lg cursor-pointer"
+                      >
                         🏢 {post.assignedCompany}
                       </span>
                     )}
                   </div>
 
-                  {/* Immagine del Post (con eventuale badge Prima/Dopo se risolto) */}
+                  {/* Immagine del Post */}
                   <div
                     onClick={() => setSelectedReportDetail(post)}
                     className="relative rounded-2xl overflow-hidden bg-slate-100 max-h-56 cursor-pointer border border-slate-100"
@@ -655,7 +929,7 @@ window.WhatsCityApp = function WhatsCityApp() {
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-slate-100 text-slate-700 transition"
                     >
                       <span>💬</span>
-                      <span> Aggiornamenti ({post.comments.length})</span>
+                      <span> Commenti ({post.comments.length})</span>
                     </button>
 
                     <button
@@ -704,13 +978,26 @@ window.WhatsCityApp = function WhatsCityApp() {
 
           {/* TAB 4: PROFILO CITTADINO, PREMI & IMPACT SCORE (Pagina 8 Destra PDF) */}
           {activeTab === "profile" && (
-            <window.WhatsCityProfileView
-              user={state.currentUser}
-              rewardsCatalog={state.rewardsCatalog}
-              reports={state.reports}
-              onSelectReport={(rep) => setSelectedReportDetail(rep)}
-              onRedeemReward={handleRedeemReward}
-            />
+            <div className="space-y-2">
+              <div className="px-4 pt-3 flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-500">
+                  Account attivo: <strong>{state.currentUser.email}</strong>
+                </span>
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200"
+                >
+                  ⇄ Cambia Account / Iscriviti
+                </button>
+              </div>
+              <window.WhatsCityProfileView
+                user={state.currentUser}
+                rewardsCatalog={state.rewardsCatalog}
+                reports={state.reports}
+                onSelectReport={(rep) => setSelectedReportDetail(rep)}
+                onRedeemReward={handleRedeemReward}
+              />
+            </div>
           )}
 
           {/* TAB 5: DASHBOARD PA, OPEN DATA & ANALISI DATI (Pagina 9 Destra PDF) */}
@@ -777,6 +1064,67 @@ window.WhatsCityApp = function WhatsCityApp() {
           })}
         </nav>
 
+        {/* Modale Profilo Pubblico di un Utente / Azienda / PA cliccato dal Feed */}
+        {viewedPublicProfile && (
+          <div className="fixed inset-0 z-[920] bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-slate-200 text-center space-y-3 relative">
+              <button
+                onClick={() => setViewedPublicProfile(null)}
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center font-bold text-slate-600"
+              >
+                ✕
+              </button>
+              <img
+                src={viewedPublicProfile.avatar}
+                alt={viewedPublicProfile.name}
+                className="w-20 h-20 rounded-full object-cover mx-auto border-4 border-emerald-500/30 shadow"
+              />
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-base">
+                  {viewedPublicProfile.name}
+                </h3>
+                <span className="inline-block bg-emerald-100 text-emerald-900 font-extrabold text-[11px] px-3 py-0.5 rounded-full mt-1">
+                  {viewedPublicProfile.roleBadge}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {viewedPublicProfile.bio}
+              </p>
+              <div className="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200/60 text-xs">
+                <div>
+                  <span className="font-black text-emerald-700 text-sm block">
+                    {viewedPublicProfile.impactScore || 120} pt
+                  </span>
+                  <span className="text-[10px] text-slate-500">City Impact Score</span>
+                </div>
+                <div>
+                  <span className="font-black text-slate-900 text-sm block">
+                    {viewedPublicProfile.neighborhood || "Meda"}
+                  </span>
+                  <span className="text-[10px] text-slate-500">Zona / Quartiere</span>
+                </div>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => {
+                    handleLoginSuccess(viewedPublicProfile);
+                    setViewedPublicProfile(null);
+                  }}
+                  className="flex-1 bg-[#0a5c48] hover:bg-[#052e2b] text-white font-extrabold text-xs py-2.5 rounded-xl"
+                >
+                  🔐 Entra con questo profilo
+                </button>
+                <button
+                  onClick={() => setViewedPublicProfile(null)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs"
+                >
+                  Chiudi
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Modale Dettaglio Segnalazione, Confronto Foto Prima/Dopo & Conferma Cittadino */}
         {selectedReportDetail && (
           <div className="fixed inset-0 z-[850] bg-slate-950/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn">
@@ -821,7 +1169,6 @@ window.WhatsCityApp = function WhatsCityApp() {
                   {selectedReportDetail.description}
                 </p>
 
-                {/* Confronto fotografico Prima / Dopo quando risolto */}
                 {selectedReportDetail.afterImage && (
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <div className="rounded-xl overflow-hidden border border-slate-200">
@@ -874,12 +1221,15 @@ window.WhatsCityApp = function WhatsCityApp() {
                           ...prev,
                           status: "in_progress",
                           statusLabel: "In lavorazione",
-                          assignedCompany: "Eco Azienda Brianza"
+                          assignedCompany:
+                            state.currentUser.role === "company"
+                              ? state.currentUser.name
+                              : "Eco Azienda Brianza"
                         }));
                       }}
                       className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs py-2 rounded-xl"
                     >
-                      🛠️ Simula Presa in Carico Azienda
+                      🛠️ Prendi in Carico Ticket
                     </button>
                   )}
                   {selectedReportDetail.status !== "resolved" && (
@@ -922,12 +1272,12 @@ window.WhatsCityApp = function WhatsCityApp() {
                 {/* Cronologia Commenti PA / Azienda / Cittadini */}
                 <div className="pt-2 border-t border-slate-200">
                   <h4 className="font-extrabold text-xs text-slate-800 mb-2">
-                    Cronologia & Risposte Ufficiali ({selectedReportDetail.comments.length})
+                    Commenti & Risposte Ufficiali ({selectedReportDetail.comments.length})
                   </h4>
                   <div className="space-y-2 max-h-36 overflow-y-auto">
                     {selectedReportDetail.comments.length === 0 ? (
                       <p className="text-xs text-slate-400 italic">
-                        Nessun aggiornamento ancora registrato.
+                        Nessun commento ancora registrato. Scrivi il primo!
                       </p>
                     ) : (
                       selectedReportDetail.comments.map((c, idx) => (
@@ -950,7 +1300,7 @@ window.WhatsCityApp = function WhatsCityApp() {
                       type="text"
                       value={newCommentText}
                       onChange={(e) => setNewCommentText(e.target.value)}
-                      placeholder="Scrivi un commento o aggiornamento..."
+                      placeholder={`Commenta come ${state.currentUser.name}...`}
                       className="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs"
                     />
                     <button
@@ -983,6 +1333,17 @@ window.WhatsCityApp = function WhatsCityApp() {
           onClose={() => setIsAICopilotOpen(false)}
           appState={state}
           activeTab={activeTab}
+        />
+
+        {/* Modale Registrazione / Login / Community DB / Cloud Supabase */}
+        <window.WhatsCityAuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          users={state.users || []}
+          currentUser={state.currentUser}
+          onLoginSuccess={handleLoginSuccess}
+          onRegisterUser={handleRegisterUser}
+          backendStatusLabel={backendStatusLabel}
         />
       </div>
     </div>
