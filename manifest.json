@@ -1,0 +1,10 @@
+{
+  "short_name": "WhatsCity",
+  "name": "WhatsCity - La città che ascolta. E risponde.",
+  "description": "Ecosistema urbano collaborativo per Cittadini, Aziende e Pubblica Amministrazione",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#052e2b",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary"
+}
