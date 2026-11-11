@@ -165,18 +165,47 @@ Rispondi in italiano in modo chiaro, conciso, operativo e strutturato con elench
     const q = userMessage.toLowerCase();
     const cameras = appState.cityCameras || [];
 
+    if (q.match(/navig|guida|come funzion|dove trov|usare|sito|app|sezion|tab|mappa|profilo/)) {
+      return {
+        source: "WhatsCity Eco-Navigator · Guida Sito",
+        actionTab: null,
+        text:
+          `🧭 **Guida Rapida alla Navigazione di WhatsCity:**\n\n` +
+          `• **🏠 1. Home (Feed Social Cittadino):** Vedi le segnalazioni di Milano, metti *"💚 Grazie"*, commenta, apri i profili della community o clicca su **"+ Segnala"**.\n` +
+          `• **📍 2. Mappa Waze & Telecamere Live:** Clicca su **"🎯 La mia posizione GPS"** per geolocalizzarti col tuo avatar sulla mappa, esplora le **6 Telecamere Live reali di Milano** (Duomo, San Babila, Stazione Centrale, San Lorenzo, CityLife, San Siro) o attiva **"🚗 Waze Traffico Live"**.\n` +
+          `• **⚙️ 3. Portale Aziende (B2B):** Dove utility (A2A, AMSA, MM) e imprese locali prendono in carico i ticket e caricano la foto *Prima/Dopo* (+50 pt ESG).\n` +
+          `• **👤 4. Profilo & Premi:** Controlla il tuo **City Impact Score** e riscatta sconti in bolletta A2A, abbonamenti BikeMi/ATM e alberi ForestaMi.\n` +
+          `• **📊 5. Dashboard PA & Open Data:** Cabina di regia del Comune di Milano con grafici, controllo priorità e download **CSV/JSON Open Data**.\n\n` +
+          `👉 *Usa i pulsanti verdi qui sotto nel chatbot per saltare direttamente alla sezione che ti interessa!*`
+      };
+    }
+
+    if (q.match(/ecolog|sostenibil|ambient|co2|ricicl|rifiut|differenziat|economia circolar|forestami|verde|energia|risparmi|esg|a2a/)) {
+      return {
+        source: "WhatsCity Eco-Advisor · Sostenibilità & Economia Circolare",
+        actionTab: "profile",
+        text:
+          `🌿 **Impatto Ecologico & Sostenibilità Urbana (Progetto Re-GenerAction A2A):**\n\n` +
+          `• **♻️ Economia Circolare & Decoro (AMSA / A2A):** A Milano la raccolta differenziata supera il 62%. Segnalare rapidamente rifiuti ingombranti o cestini saturi tramite i QR Code riduce del **35% i chilometri percorsi a vuoto** dai mezzi di raccolta, tagliando le emissioni di CO₂.\n` +
+          `• **💡 Smart Lighting LED & Sensori IoT:** I Pali Intelligenti A2A regolano l'intensità luminosa (*Smart Dimming*) in base al traffico e alla luce naturale, risparmiando fino al **55% di energia elettrica**.\n` +
+          `• **🌳 ForestaMi & Resilienza Climatica:** Ogni 150 punti *City Impact Score* puoi adottare un albero a Milano (un albero adulto assorbe fino a **20-30 kg di CO₂ all'anno** e mitiga le isole di calore estive).\n` +
+          `• **💧 Prevenzione Idrogeologica:** Segnalare le caditoie ostruite prima dei temporali protegge i quartieri dalle esondazioni urbane.`
+      };
+    }
+
     if (q.match(/telecamer|cam|video|traffico|ztl|area c|area b|seveso/)) {
       return {
-        source: "WhatsCity AI Core · Rete Telecamere Milano",
+        source: "WhatsCity AI Core · Rete 6 Telecamere Reali Milano",
+        actionTab: "map",
         text:
-          `📹 **Monitoraggio Live Telecamere Urbane & Computer Vision Milano (${cameras.length} flussi attivi):**\n\n` +
+          `📹 **Monitoraggio Live Telecamere Urbane di Milano (${cameras.length} postazioni verificate):**\n\n` +
           cameras
             .map(
               (c) =>
                 `• **${c.id}** (*${c.name}*): \`${c.aiAnalytics.vehiclesPerHour}\` — 🤖 *${c.aiAnalytics.anomalyDetected}*`
             )
             .join("\n") +
-          `\n\n🚨 **Allerta AI Vision:** La telecamera \`CAM-MI-04\` (Niguarda / Viale Fulvio Testi) rileva pre-soglia Fiume Seveso (1.45m) e caditoia da disostruire con priorità assoluta.`
+          `\n\n🔗 Cliccando su ogni telecamera nella **Mappa** si apre la diretta streaming specifica di quella zona esatta (*Duomo, San Babila, Stazione Centrale, San Lorenzo, CityLife, San Siro*).`
       };
     }
 
@@ -247,19 +276,21 @@ Rispondi in italiano in modo chiaro, conciso, operativo e strutturato con elench
   }
 };
 
-// Componente Modale / Drawer per WhatsCity AI Copilot
+// Componente Modale + Assistente Navigazione & Sostenibilità (WhatsCity AI & Eco-Bot)
 window.WhatsCityAICopilotModal = function WhatsCityAICopilotModal({
   isOpen,
   onClose,
   appState,
   activeTab,
-  onOpenCreateWithDraft
+  onNavigateTab,
+  onOpenCreateReport,
+  onOpenAuth
 }) {
   const [messages, setMessages] = React.useState([
     {
       role: "assistant",
-      source: "WhatsCity AI Copilot",
-      text: "Ciao! Sono l'assistente AI di **WhatsCity** (AEB Gruppo A2A). Posso analizzare le criticità urbane in tempo reale, interrogare i sensori IoT dei Pali Intelligenti o generare un piano d'intervento per Comune e Aziende. Come posso aiutarti?"
+      source: "WhatsCity AI & Eco-Navigator 🌱",
+      text: "Ciao! Sono il **Chatbot di Navigazione & Sostenibilità di WhatsCity** (Progetto Re-GenerAction AEB / Gruppo A2A).\n\nPosso **guidarti tra le sezioni del sito**, portarti direttamente alle **telecamere live di Milano**, aiutarti a **geolocalizzarti sulla mappa** e darti consigli pratici su **ecologia, raccolta differenziata, risparmio energetico e qualità dell'aria**. Dove vuoi andare o cosa vuoi scoprire?"
     }
   ]);
   const [input, setInput] = React.useState("");
@@ -288,10 +319,11 @@ window.WhatsCityAICopilotModal = function WhatsCityAICopilotModal({
   };
 
   const quickPrompts = [
-    "📹 Stato Telecamere Live & Seveso",
+    "🧭 Guida alla navigazione del sito",
+    "🌿 Consigli Ecologici & Impatto CO₂",
+    "📹 Dove sono le 6 Telecamere Live?",
     "📊 Piano d'azione prioritario PA Milano",
-    "📡 Analisi sensori IoT Pali A2A",
-    "🚲 Premi ATM, BikeMi & A2A Energia"
+    "📡 Qualità dell'aria Pali IoT A2A"
   ];
 
   const handleSend = async (textToSend) => {
@@ -429,6 +461,32 @@ window.WhatsCityAICopilotModal = function WhatsCityAICopilotModal({
             </div>
           )}
           <div ref={chatEndRef} />
+        </div>
+
+        {/* Barra Navigazione Assistita 1-Click dentro il Chatbot */}
+        <div className="px-3.5 py-2 bg-emerald-950 text-white flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar border-b border-emerald-800">
+          <span className="text-[10px] font-extrabold text-emerald-300 whitespace-nowrap mr-1">
+            🧭 Vai a:
+          </span>
+          {[
+            { id: "home", label: "🏠 Feed Social" },
+            { id: "map", label: "📍 Mappa & GPS" },
+            { id: "activity", label: "🏢 Aziende" },
+            { id: "profile", label: "🎁 Premi Eco" },
+            { id: "dashboard", label: "📊 Dashboard PA" }
+          ].map((nav) => (
+            <button
+              key={nav.id}
+              type="button"
+              onClick={() => {
+                if (onNavigateTab) onNavigateTab(nav.id);
+                onClose();
+              }}
+              className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-emerald-500 hover:text-slate-950 text-[10px] font-extrabold whitespace-nowrap transition"
+            >
+              {nav.label}
+            </button>
+          ))}
         </div>
 
         {/* Suggerimenti Rapidi */}

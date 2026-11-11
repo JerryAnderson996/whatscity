@@ -1,6 +1,6 @@
 // App Principale WhatsCity: Social Network Civico con Registrazione/Login DB, AI Copilot, Mappe IoT e 5 Tab
 window.WhatsCityApp = function WhatsCityApp() {
-  const STORAGE_KEY = "whatscity_state_milano_v5";
+  const STORAGE_KEY = "whatscity_state_milano_v6";
 
   const [state, setState] = React.useState(() => {
     try {
@@ -1083,12 +1083,13 @@ window.WhatsCityApp = function WhatsCityApp() {
             </div>
           )}
 
-          {/* TAB 2: MAPPA INTERATTIVA + TELECAMERE LIVE + SENSORI IOT A2A MILANO */}
+          {/* TAB 2: MAPPA INTERATTIVA + GEOLOCALIZZAZIONE UTENTE + TELECAMERE LIVE MILANO */}
           {activeTab === "map" && (
             <window.WhatsCityMapView
               reports={state.reports}
               qrPoles={state.qrPoles}
               cityCameras={state.cityCameras}
+              currentUser={state.currentUser}
               onSelectReport={(rep) => setSelectedReportDetail(rep)}
               onOpenNewReportFromPole={(pole) => {
                 setPreselectedCoords(null);
@@ -1150,17 +1151,17 @@ window.WhatsCityApp = function WhatsCityApp() {
           )}
         </main>
 
-        {/* Floating Action Buttons: AI Copilot + Nuova Segnalazione */}
-        {activeTab === "home" && (
-          <div className="absolute bottom-20 right-4 z-40 flex flex-col items-end gap-2.5">
-            <button
-              onClick={() => setIsAICopilotOpen(true)}
-              className="px-3.5 py-2 rounded-full bg-[#052e2b] hover:bg-slate-900 text-emerald-300 shadow-xl border border-emerald-400/50 flex items-center gap-1.5 text-xs font-extrabold transition transform hover:scale-105"
-              title="Chiedi a WhatsCity AI Copilot"
-            >
-              <span>✨</span>
-              <span>AI Copilot</span>
-            </button>
+        {/* Floating Action Buttons: Chatbot Eco-Guida & Navigazione + Nuova Segnalazione */}
+        <div className="absolute bottom-20 right-4 z-40 flex flex-col items-end gap-2.5">
+          <button
+            onClick={() => setIsAICopilotOpen(true)}
+            className="px-4 py-2.5 rounded-full bg-gradient-to-r from-[#052e2b] to-[#0a5c48] hover:from-slate-900 hover:to-[#052e2b] text-emerald-300 shadow-2xl border-2 border-emerald-400 flex items-center gap-2 text-xs font-extrabold transition transform hover:scale-105"
+            title="Apri Chatbot Assistente Navigazione & Sostenibilità"
+          >
+            <span className="text-base">🌱</span>
+            <span>Eco-Bot & Guida Sito</span>
+          </button>
+          {activeTab === "home" && (
             <button
               onClick={() => {
                 setPreselectedPole(null);
@@ -1172,8 +1173,8 @@ window.WhatsCityApp = function WhatsCityApp() {
             >
               +
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Bottom Navigation Bar a 5 voci (Identica ai mockup Pagine 8 e 9 del PDF) */}
         <nav className="bg-[#085a49] text-white px-2 py-2 flex items-center justify-around border-t border-emerald-600/40 z-30 flex-shrink-0">
@@ -1465,12 +1466,15 @@ window.WhatsCityApp = function WhatsCityApp() {
           preselectedCoords={preselectedCoords}
         />
 
-        {/* Modale WhatsCity AI Copilot */}
+        {/* Modale WhatsCity AI & Eco-Bot (Guida Navigazione + Sostenibilità) */}
         <window.WhatsCityAICopilotModal
           isOpen={isAICopilotOpen}
           onClose={() => setIsAICopilotOpen(false)}
           appState={state}
           activeTab={activeTab}
+          onNavigateTab={(targetTab) => setActiveTab(targetTab)}
+          onOpenCreateReport={() => setIsCreateOpen(true)}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
         />
 
         {/* Modale Registrazione / Login / Community DB / Cloud Supabase */}

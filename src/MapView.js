@@ -11,6 +11,7 @@ window.WhatsCityMapView = function WhatsCityMapView({
   reports,
   qrPoles,
   cityCameras,
+  currentUser,
   onSelectReport,
   onOpenNewReportFromPole,
   onOpenNewReportAtCoords
@@ -28,6 +29,10 @@ window.WhatsCityMapView = function WhatsCityMapView({
   const [camFeedTab, setCamFeedTab] = React.useState("live_radar"); // "live_radar" | "waze_cam" | "ai_hud"
   const [selectedMapReport, setSelectedMapReport] = React.useState(null);
   const [pickLocationMode, setPickLocationMode] = React.useState(false);
+
+  // Stato Geolocalizzazione Utente Registrato sulla Mappa
+  const [myGpsLocation, setMyGpsLocation] = React.useState(null);
+  const [isLocatingMe, setIsLocatingMe] = React.useState(false);
 
   // Ricerca Indirizzi Milano (Geocoding API reale)
   const [geoQuery, setGeoQuery] = React.useState("");
@@ -56,12 +61,67 @@ window.WhatsCityMapView = function WhatsCityMapView({
 
   const milanoQuickZones = [
     { name: "Duomo", coords: [45.4642, 9.1900], zoom: 16 },
-    { name: "Porta Nuova / BAM", coords: [45.4842, 9.1886], zoom: 16 },
-    { name: "Navigli / Darsena", coords: [45.4526, 9.1765], zoom: 16 },
-    { name: "Buenos Aires", coords: [45.4805, 9.2112], zoom: 16 },
-    { name: "Città Studi", coords: [45.4781, 9.2272], zoom: 16 },
-    { name: "Niguarda / Seveso", coords: [45.5122, 9.1968], zoom: 15 }
+    { name: "San Babila", coords: [45.4665, 9.1975], zoom: 16 },
+    { name: "Staz. Centrale", coords: [45.4847, 9.2030], zoom: 16 },
+    { name: "San Lorenzo / Ticinese", coords: [45.4581, 9.1815], zoom: 16 },
+    { name: "CityLife", coords: [45.4773, 9.1565], zoom: 16 },
+    { name: "San Siro", coords: [45.4781, 9.1240], zoom: 16 }
   ];
+
+  // Funzione Geolocalizzazione GPS dell'Utente Registrato
+  const handleLocateMe = () => {
+    setIsLocatingMe(true);
+    const applyUserCoords = async (lat, lng, isSimulatedMilano) => {
+      let resolvedAddress = `${currentUser ? currentUser.neighborhood : "Centro"}, Milano`;
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.address) {
+            const road =
+              data.address.road ||
+              data.address.pedestrian ||
+              data.address.square ||
+              "Posizione GPS";
+            const num = data.address.house_number ? ` ${data.address.house_number}` : "";
+            const city = data.address.city || data.address.town || "Milano";
+            resolvedAddress = `${road}${num}, ${city}`;
+          }
+        }
+      } catch (err) {}
+
+      const locObj = {
+        lat: Number(lat.toFixed(4)),
+        lng: Number(lng.toFixed(4)),
+        address: resolvedAddress,
+        isSimulatedMilano
+      };
+      setMyGpsLocation(locObj);
+      setWazeCoords({ lat: locObj.lat, lng: locObj.lng, zoom: 16 });
+      const map = mapInstanceRef.current;
+      if (map && mapStyle !== "waze_live") {
+        map.flyTo([locObj.lat, locObj.lng], 16, { duration: 0.8 });
+      }
+      setIsLocatingMe(false);
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          applyUserCoords(pos.coords.latitude, pos.coords.longitude, false);
+        },
+        () => {
+          // Fallback intelligente sulle coordinate del quartiere dell'utente a Milano
+          applyUserCoords(45.4658, 9.1912, true);
+        },
+        { enableHighAccuracy: true, timeout: 6000 }
+      );
+    } else {
+      applyUserCoords(45.4658, 9.1912, true);
+    }
+  };
 
   React.useEffect(() => {
     fetch(
@@ -389,7 +449,77 @@ window.WhatsCityMapView = function WhatsCityMapView({
         marker.addTo(layer);
       });
     }
-  }, [filteredReports, qrPoles, cityCameras, showIoTPoles, showCameras]);
+
+    // 4. Marker GPS Utente Registrato (Avatar Waze-Style con radar blu pulsante)
+    if (myGpsLocation) {
+      const userAvatar =
+        (currentUser && currentUser.avatar) ||
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
+      const userName = (currentUser && currentUser.name.split(" ")[0]) || "Tu";
+
+      const myGpsIcon = L.divIcon({
+        className: "my-gps-marker",
+        html: `
+          <div style="
+            position: relative;
+            width: 56px;
+            height: 62px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          ">
+            <div style="
+              position: absolute;
+              top: -6px;
+              width: 56px;
+              height: 56px;
+              background: rgba(0, 153, 255, 0.28);
+              border-radius: 9999px;
+              animation: pulse 1.8s infinite;
+            "></div>
+            <div style="
+              position: relative;
+              width: 44px;
+              height: 44px;
+              border-radius: 9999px;
+              border: 3.5px solid #0099ff;
+              background: #fff;
+              overflow: hidden;
+              box-shadow: 0 6px 14px rgba(0, 153, 255, 0.5);
+            ">
+              <img src="${userAvatar}" style="width:100%;height:100%;object-fit:cover;" />
+            </div>
+            <span style="
+              margin-top: 2px;
+              background: #0099ff;
+              color: #fff;
+              font-size: 9px;
+              font-weight: 900;
+              padding: 1px 6px;
+              border-radius: 999px;
+              white-space: nowrap;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            ">📍 ${userName} (Qui)</span>
+          </div>
+        `,
+        iconSize: [56, 62],
+        iconAnchor: [28, 31]
+      });
+
+      const myMarker = L.marker([myGpsLocation.lat, myGpsLocation.lng], {
+        icon: myGpsIcon
+      });
+      myMarker.on("click", () => {
+        onOpenNewReportAtCoords({
+          lat: myGpsLocation.lat,
+          lng: myGpsLocation.lng,
+          address: myGpsLocation.address,
+          prefillTitle: `Segnalazione dalla posizione di ${userName}`
+        });
+      });
+      myMarker.addTo(layer);
+    }
+  }, [filteredReports, qrPoles, cityCameras, showIoTPoles, showCameras, myGpsLocation, currentUser]);
 
   // Ricerca Indirizzi Milano
   const handleSearchMilanoAddress = async (e) => {
@@ -515,9 +645,29 @@ window.WhatsCityMapView = function WhatsCityMapView({
           </div>
         )}
 
-        {/* Barra controlli Layer (Telecamere Live, Pali A2A, Pin, Quartieri Milano) */}
+        {/* Barra controlli Layer (Geolocalizzazione Utente, Telecamere Live, Pali A2A, Pin, Quartieri Milano) */}
         <div className="flex items-center justify-between gap-2 pointer-events-auto overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1.5">
+            {/* Bottone Geolocalizza la mia posizione */}
+            <button
+              onClick={handleLocateMe}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold shadow-md transition border whitespace-nowrap ${
+                myGpsLocation
+                  ? "bg-[#0099ff] text-white border-white"
+                  : "bg-white text-[#0099ff] border-[#0099ff] hover:bg-sky-50"
+              }`}
+              title="Geolocalizza la tua posizione attuale sulla mappa"
+            >
+              <span>🎯</span>
+              <span>
+                {isLocatingMe
+                  ? "Localizzazione GPS..."
+                  : myGpsLocation
+                  ? "Posizione Attiva (Segnala qui)"
+                  : "La mia posizione GPS"}
+              </span>
+            </button>
+
             <button
               onClick={() => setShowCameras(!showCameras)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold shadow-md transition border whitespace-nowrap ${

@@ -46,27 +46,31 @@ Le app di segnalazione civica tradizionali sono frammentate, non incentivano la 
 
 ## ✨ Funzionalità Principali Implementate
 
-### 🗺️ 1. Mappa Interattiva Stile Waze + Waze Live Traffic Milano
+### 🗺️ 1. Mappa Interattiva Stile Waze + Geolocalizzazione Utente GPS + Waze Live Traffic
+- **🎯 Geolocalizzazione Utente Registrato sulla Mappa:** cliccando su **`🎯 La mia posizione GPS`**, l'utente registrato viene geolocalizzato in tempo reale sulla mappa con il **proprio avatar personale e un radar blu pulsante** in stile Waze; toccando il proprio avatar può aprire istantaneamente una segnalazione dalla posizione esatta in cui si trova.
 - **Mappa Vettoriale/Stradale Nitida (Zero API Key richiesta):** basata su Esri World Street Map & OpenStreetMap con **Bubble Pin 3D in stile Waze** per segnalazioni aperte (`🔴`), cantieri in lavorazione (`🟡 🔧`) e interventi risolti (`🟢 ✓`).
 - **🚗 Integrazione Waze Live Traffic Milano:** switch istantaneo (`🚗 Waze Traffico Live`) che incorpora la mappa del traffico in tempo reale di Waze su Milano.
 - **🛰️ Vista Satellitare HD & Ricerca Geocoding Live:** barra di ricerca per qualsiasi via, piazza o incrocio di Milano + Reverse Geocoding automatico toccando un punto sulla mappa (`+ Segnala su Mappa`).
 
-### 📹 2. Rete Telecamere Urbane Live di Milano & AI Computer Vision
-- **5 Nodi Telecamera Strategici a Milano:**
-  - `CAM-MI-01` — **Piazza del Duomo / Galleria V. Emanuele**
-  - `CAM-MI-02` — **Porta Nuova / Piazza Gae Aulenti & Bosco Verticale**
-  - `CAM-MI-03` — **Darsena & Alzaia Naviglio Grande**
-  - `CAM-MI-04` — **Fiume Seveso / Viale Fulvio Testi (Niguarda - Monitoraggio Idro)**
-  - `CAM-MI-05` — **Corso Buenos Aires / Piazzale Loreto (Area B/C & Ciclabili)**
-- **Player Multi-Flusso Reale:** aprendo una telecamera puoi visualizzare il **Live Radar Meteo/Vento (Windy Embed)**, il **Live Traffico Waze dell'incrocio**, l'**AI Vision HUD** e aprire con un click lo **Stream Webcam Live Reale di Milano** (*SkylineWebcams Duomo*, *iLMeteo Navigli/Milano*, *LombardiaWebcam*).
+### 📹 2. Rete 6 Telecamere Urbane Live di Milano (Link Diretti alle Singole Webcam di Zona)
+Ogni telecamera sulla mappa è posizionata esattamente nella zona di Milano in cui è realmente attiva una webcam pubblica live 24/7 e rimanda direttamente al flusso video di quella specifica piazza/quartiere:
+- `CAM-MI-01` — **Piazza del Duomo & Galleria V. Emanuele** → [Diretta Live Duomo](https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/duomo-milano.html)
+- `CAM-MI-02` — **Piazza San Babila & Corso Vittorio Emanuele (M4)** → [Diretta Live San Babila](https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/piazza-san-babila.html)
+- `CAM-MI-03` — **Piazza Duca d'Aosta & Stazione Centrale FS** → [Diretta Live Stazione Centrale](https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/milano-stazione-centrale.html)
+- `CAM-MI-04` — **Basilica di San Lorenzo / Colonne & Porta Ticinese** → [Diretta Live San Lorenzo](https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/basilica-di-san-lorenzo-maggiore.html)
+- `CAM-MI-05` — **Skyline Milano CityLife (Tre Torri) & Viale Zara** → [Diretta Live CityLife](https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/skyline-milano-city-life.html)
+- `CAM-MI-06` — **San Siro & Parco Ippodromo (Milano Ovest)** → [Diretta Live San Siro](https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/san-siro.html)
 
 ### 📡 3. Pali Intelligenti IoT A2A & Simulatore Scansione QR Code
 - **Telemetria Ambientale Live:** ogni Palo Smart A2A mostra indice di qualità dell'aria (`AQI`), concentrazione `PM 2.5`, temperatura/umidità, stato dei corpi illuminanti LED e flussi di traffico.
 - **Simulatore Cartello QR Cittadino:** riproduce il cartello giallo/verde **WhatsCity — SCAN ME** per testare l'apertura istantanea di un ticket agganciato ai sensori del palo.
 
-### 🤖 4. WhatsCity AI Copilot & Smart Triage (Architettura Ibrida)
+### 🌱 4. Chatbot Eco-Bot & Guida alla Navigazione + AI Smart Triage
+- **🌱 Chatbot "Eco-Bot & Guida Sito" (Sempre accessibile in basso a destra):**
+  - **Assistente alla Navigazione del Sito:** spiega come usare ogni sezione dell'applicazione e include una barra **`🧭 Vai a:`** con pulsanti 1-click per saltare direttamente a *Feed Social*, *Mappa & GPS*, *Portale Aziende*, *Premi Eco* o *Dashboard PA*.
+  - **Consulente Ecologico & Sostenibilità (Re-GenerAction A2A):** fornisce informazioni e consigli pratici su economia circolare, raccolta differenziata AMSA/A2A, risparmio energetico dei lampioni LED intelligenti, assorbimento di CO₂ con il progetto *ForestaMi* e qualità dell'aria (`AQI` / `PM 2.5`).
+  - **Architettura Ibrida:** motore AI locale istantaneo + supporto opzionale per **Google Gemini API (`gemini-2.5-flash`)**.
 - **AI Smart Triage in Creazione Post:** analizza titolo, descrizione e foto per compilare automaticamente *Categoria*, *Priorità*, *Azienda/Utility suggerita* e segnalare eventuali **ticket duplicati** vicini.
-- **Chatbot WhatsCity AI Copilot:** assistente per Cittadini, Aziende e PA. Funziona subito con il motore AI locale integrato e supporta l'inserimento opzionale di una **Google Gemini API Key (`gemini-2.5-flash`)** per interrogazioni generative live.
 
 ### 🔐 5. Vero Social Network con Registrazione Multi-Ruolo & Database
 - **Iscrizione e Login Reali:** chiunque può registrarsi scegliendo il ruolo (**Cittadino**, **Azienda B2B con P.IVA**, **Operatore PA**), caricare il proprio avatar e pubblicare post o commenti col proprio profilo.

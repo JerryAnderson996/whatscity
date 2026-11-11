@@ -237,12 +237,12 @@ window.WHATSCITY_INITIAL_DATA = {
       type: "reward"
     }
   ],
-  // Rete Telecamere Live Traffico, Meteo, ZTL Area C/B e Sicurezza Idro di Milano (con Embed Live Waze + Webcam Reali Milano)
+  // Rete Telecamere Live Reali di Milano (6 Zone Esatte con Webcam Live Attive Verificate 24/7)
   cityCameras: [
     {
       id: "CAM-MI-01",
-      name: "Cam #01 — Piazza del Duomo / Galleria V. Emanuele",
-      zone: "Municipio 1 · Centro",
+      name: "Cam #01 — Piazza del Duomo & Galleria V. Emanuele",
+      zone: "Municipio 1 · Duomo",
       lat: 45.4642,
       lng: 9.1900,
       address: "Piazza del Duomo, 20121 Milano (MI)",
@@ -251,93 +251,113 @@ window.WHATSCITY_INITIAL_DATA = {
         crowdDensity: "Elevata (1.420 pedoni/ora)",
         vehiclesPerHour: "ZTL Pedonale (Solo Tram ATM)",
         airQuality: "AQI 31 (Buona)",
-        anomalyDetected: "Nessuna anomalia rilevata",
+        anomalyDetected: "Flusso pedonale regolare in Piazza del Duomo",
         alertLevel: "normal"
       },
       previewImage: "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=900&auto=format&fit=crop&q=80",
       liveWebcamUrl: "https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/duomo-milano.html",
-      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=12&overlay=wind&product=ecmwf&level=surface&lat=45.4642&lon=9.1900&detailLat=45.4642&detailLon=9.1900&marker=true",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=wind&product=ecmwf&level=surface&lat=45.4642&lon=9.1900&marker=true",
       wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4642&lon=9.1900&pin=1"
     },
     {
       id: "CAM-MI-02",
-      name: "Cam #02 — Porta Nuova / Piazza Gae Aulenti & Bosco Verticale",
-      zone: "Municipio 9 · Garibaldi / Isola",
-      lat: 45.4842,
-      lng: 9.1886,
-      address: "Piazza Gae Aulenti, 20124 Milano (MI)",
-      streamStatus: "LIVE 4K · AI Mobility",
+      name: "Cam #02 — Piazza San Babila & Corso Vittorio Emanuele",
+      zone: "Municipio 1 · San Babila / M4",
+      lat: 45.4665,
+      lng: 9.1975,
+      address: "Piazza San Babila, 20122 Milano (MI)",
+      streamStatus: "LIVE HD · SAN BABILA",
       aiAnalytics: {
-        crowdDensity: "Media (680 pedoni + 210 ciclisti/ora)",
-        vehiclesPerHour: "Tunnel Viale Liberazione: 1.180 veicoli/h",
-        airQuality: "AQI 24 (Ottima · Parco BAM)",
-        anomalyDetected: "Flusso regolare",
+        crowdDensity: "Alta (Interscambio Metro M1/M4 Linate)",
+        vehiclesPerHour: "Area Pedonale + Hub Mobilità Sostenibile",
+        airQuality: "AQI 29 (Buona)",
+        anomalyDetected: "Illuminazione LED e arredo urbano post-M4 regolari",
         alertLevel: "normal"
       },
-      previewImage: "https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=900&auto=format&fit=crop&q=80",
-      liveWebcamUrl: "https://www.windy.com/it/-Webcams-Milano/webcams/1391946519?45.484,9.189,14",
-      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=radar&product=ecmwf&level=surface&lat=45.4842&lon=9.1886&marker=true",
-      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4842&lon=9.1886&pin=1"
+      previewImage: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=900&auto=format&fit=crop&q=80",
+      liveWebcamUrl: "https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/piazza-san-babila.html",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=temp&product=ecmwf&level=surface&lat=45.4665&lon=9.1975&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4665&lon=9.1975&pin=1"
     },
     {
       id: "CAM-MI-03",
-      name: "Cam #03 — Darsena & Alzaia Naviglio Grande",
-      zone: "Municipio 6 · Navigli / Ticinese",
-      lat: 45.4526,
-      lng: 9.1765,
-      address: "Piazza XXIV Maggio / Darsena, 20123 Milano (MI)",
-      streamStatus: "LIVE HD · DARSENA CAM",
+      name: "Cam #03 — Piazza Duca d'Aosta & Stazione Centrale",
+      zone: "Municipio 2 · Stazione Centrale",
+      lat: 45.4847,
+      lng: 9.2030,
+      address: "Piazza Duca d'Aosta, 20124 Milano (MI)",
+      streamStatus: "LIVE HD · CENTRALE FS",
       aiAnalytics: {
-        crowdDensity: "Alta (Movida & Mercato Comunale)",
-        vehiclesPerHour: "740 veicoli/h · Varco ZTL Navigli Attivo",
-        airQuality: "AQI 38 (Buona)",
-        anomalyDetected: "Rilevato accumulo sacchi rifiuti presso cestini Darsena",
+        crowdDensity: "Molto Alta (Hub Ferroviario & BikeMi)",
+        vehiclesPerHour: "1.520 veicoli/h · Monitoraggio Taxi & Bus Elettrici",
+        airQuality: "AQI 46 (Moderata · PM2.5 16 µg/m³)",
+        anomalyDetected: "⚠️ Segnalato accumulo rifiuti presso aiuola lato tram",
         alertLevel: "warning"
       },
-      previewImage: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=900&auto=format&fit=crop&q=80",
-      liveWebcamUrl: "https://www.ilmeteo.it/webcam/Milano",
-      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=temp&product=ecmwf&level=surface&lat=45.4526&lon=9.1765&marker=true",
-      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4526&lon=9.1765&pin=1"
+      previewImage: "https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=900&auto=format&fit=crop&q=80",
+      liveWebcamUrl: "https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/milano-stazione-centrale.html",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=radar&product=ecmwf&level=surface&lat=45.4847&lon=9.2030&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4847&lon=9.2030&pin=1"
     },
     {
       id: "CAM-MI-04",
-      name: "Cam #04 — Monitoraggio Idro Fiume Seveso / Viale Fulvio Testi",
-      zone: "Municipio 9 · Niguarda / Istria",
-      lat: 45.5122,
-      lng: 9.1968,
-      address: "Viale Fulvio Testi / Via Ornato (Niguarda), Milano",
-      streamStatus: "LIVE SENSORE IDRO + CAM",
+      name: "Cam #04 — Basilica di San Lorenzo / Colonne & Ticinese",
+      zone: "Municipio 1/6 · Ticinese / Navigli",
+      lat: 45.4581,
+      lng: 9.1815,
+      address: "Corso di Porta Ticinese, 20123 Milano (MI)",
+      streamStatus: "LIVE HD · SAN LORENZO",
       aiAnalytics: {
-        crowdDensity: "Bassa",
-        vehiclesPerHour: "2.150 veicoli/h (Traffico Intenso)",
-        airQuality: "AQI 49 (Discreta)",
-        anomalyDetected: "⚠️ Allerta Pre-Soglia Seveso (1.45m) · Caditoia da pulire",
-        alertLevel: "critical"
+        crowdDensity: "Alta (Parco delle Basiliche & Colonne)",
+        vehiclesPerHour: "ZTL Ticinese · Transito Tram Storici ATM",
+        airQuality: "AQI 34 (Buona)",
+        anomalyDetected: "Rilevato cestino raccolta differenziata pieno",
+        alertLevel: "warning"
       },
-      previewImage: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=900&auto=format&fit=crop&q=80",
-      liveWebcamUrl: "https://www.lombardiawebcam.it/",
-      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=12&overlay=rain&product=ecmwf&level=surface&lat=45.5122&lon=9.1968&marker=true",
-      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.5122&lon=9.1968&pin=1"
+      previewImage: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=900&auto=format&fit=crop&q=80",
+      liveWebcamUrl: "https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/basilica-di-san-lorenzo-maggiore.html",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=wind&product=ecmwf&level=surface&lat=45.4581&lon=9.1815&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4581&lon=9.1815&pin=1"
     },
     {
       id: "CAM-MI-05",
-      name: "Cam #05 — Corso Buenos Aires / Piazzale Loreto (Area B/C)",
-      zone: "Municipio 3 · Venezia / Loreto",
-      lat: 45.4812,
-      lng: 9.2121,
-      address: "Corso Buenos Aires 45, 20124 Milano (MI)",
-      streamStatus: "LIVE HD · AI Traffic & Bike",
+      name: "Cam #05 — Skyline Milano CityLife & Viale Zara",
+      zone: "Municipio 8/9 · CityLife / Zara",
+      lat: 45.4773,
+      lng: 9.1565,
+      address: "Piazza Tre Torri (CityLife), 20145 Milano (MI)",
+      streamStatus: "LIVE HD · SKYLINE CITYLIFE",
       aiAnalytics: {
-        crowdDensity: "Molto Alta (1.950 passaggi/ora)",
-        vehiclesPerHour: "1.430 veicoli/h + 520 bici su corsia protetta",
-        airQuality: "AQI 52 (Moderata · PM2.5 19 µg/m³)",
-        anomalyDetected: "Veicolo in sosta irregolare su pista ciclabile",
-        alertLevel: "warning"
+        crowdDensity: "Media (Parco CityLife Smart District)",
+        vehiclesPerHour: "Quartiere 100% Car-Free in superficie",
+        airQuality: "AQI 21 (Ottima · Isola Verde ESG)",
+        anomalyDetected: "Qualità dell'aria eccellente e sensori A2A attivi",
+        alertLevel: "normal"
       },
-      previewImage: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=900&auto=format&fit=crop&q=80",
-      liveWebcamUrl: "https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano.html",
-      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=wind&product=ecmwf&level=surface&lat=45.4812&lon=9.2121&marker=true",
-      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4812&lon=9.2121&pin=1"
+      previewImage: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=900&auto=format&fit=crop&q=80",
+      liveWebcamUrl: "https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/skyline-milano-city-life.html",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=rain&product=ecmwf&level=surface&lat=45.4773&lon=9.1565&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4773&lon=9.1565&pin=1"
+    },
+    {
+      id: "CAM-MI-06",
+      name: "Cam #06 — San Siro & Parco Ippodromo (Milano Ovest)",
+      zone: "Municipio 7 · San Siro",
+      lat: 45.4781,
+      lng: 9.1240,
+      address: "Piazzale Angelo Moratti, 20151 Milano (MI)",
+      streamStatus: "LIVE HD · SAN SIRO",
+      aiAnalytics: {
+        crowdDensity: "Moderata (Area Verde & Impianti Sportivi)",
+        vehiclesPerHour: "690 veicoli/h · M5 Lilla San Siro",
+        airQuality: "AQI 25 (Ottima)",
+        anomalyDetected: "Monitoraggio illuminazione stradale A2A regolare",
+        alertLevel: "normal"
+      },
+      previewImage: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=900&auto=format&fit=crop&q=80",
+      liveWebcamUrl: "https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/san-siro.html",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=wind&product=ecmwf&level=surface&lat=45.4781&lon=9.1240&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4781&lon=9.1240&pin=1"
     }
   ],
   // Pali Intelligenti IoT A2A Smart City installati a Milano
