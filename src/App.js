@@ -1,6 +1,6 @@
 // App Principale WhatsCity: Social Network Civico con Registrazione/Login DB, AI Copilot, Mappe IoT e 5 Tab
 window.WhatsCityApp = function WhatsCityApp() {
-  const STORAGE_KEY = "whatscity_state_milano_v4";
+  const STORAGE_KEY = "whatscity_state_milano_v5";
 
   const [state, setState] = React.useState(() => {
     try {
@@ -21,6 +21,7 @@ window.WhatsCityApp = function WhatsCityApp() {
     "Database Persistente Attivo 🟢"
   );
   const [activeTab, setActiveTab] = React.useState("home"); // home, map, activity, profile, dashboard
+  const [desktopMode, setDesktopMode] = React.useState(true); // true = Full-Screen Web App su PC, false = Cornice Smartphone Pitch
   const [searchQuery, setSearchQuery] = React.useState("");
   const [showSearchBar, setShowSearchBar] = React.useState(false);
   const [selectedCategoryChip, setSelectedCategoryChip] = React.useState("Tutte");
@@ -453,23 +454,43 @@ window.WhatsCityApp = function WhatsCityApp() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col lg:flex-row items-center justify-center lg:gap-8 p-0 sm:p-4">
-      {/* Pannello Laterale Desktop (Controllo Social Network, Utenti DB, Viste Pitch e AI) */}
-      <div className="hidden lg:flex flex-col justify-between w-80 bg-[#052e2b] text-white rounded-3xl p-6 shadow-2xl border border-emerald-500/30 self-stretch max-h-[860px]">
+    <div
+      className={`min-h-screen bg-slate-900 flex flex-col lg:flex-row items-center justify-center ${
+        desktopMode ? "p-0 gap-0" : "lg:gap-8 p-0 sm:p-4"
+      }`}
+    >
+      {/* Pannello Laterale Desktop (Navigazione Web App Desktop / Controlli Pitch) */}
+      <div
+        className={`hidden lg:flex flex-col justify-between bg-[#052e2b] text-white p-5 shadow-2xl border-r border-emerald-500/30 self-stretch ${
+          desktopMode
+            ? "w-72 xl:w-80 h-screen sticky top-0"
+            : "w-80 rounded-3xl border max-h-[860px]"
+        }`}
+      >
         <div className="space-y-3.5">
-          {/* Logo WhatsCity (Pagina 3 PDF) */}
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-500 flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg">
-              ✓
+          {/* Logo WhatsCity + Switch Vista Desktop / Smartphone */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg">
+                ✓
+              </div>
+              <div>
+                <h1 className="text-lg font-black tracking-tight">
+                  Whats<span className="text-emerald-400">City</span>
+                </h1>
+                <p className="text-[10px] text-emerald-200/80 font-medium">
+                  Milano Smart City · A2A
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-black tracking-tight">
-                Whats<span className="text-emerald-400">City</span>
-              </h1>
-              <p className="text-[11px] text-emerald-200/80 font-medium">
-                La città che ascolta. E risponde.
-              </p>
-            </div>
+
+            <button
+              onClick={() => setDesktopMode(!desktopMode)}
+              className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-[10px] font-bold text-emerald-300 border border-white/15 transition"
+              title="Passa tra Vista Web Desktop Full-Screen e Vista Smartphone Pitch"
+            >
+              {desktopMode ? "📱 Vista Tel" : "🖥️ Vista PC"}
+            </button>
           </div>
 
           {/* Card Utente Attualmente Loggato + Bottone Iscriviti / Cambia Account */}
@@ -567,8 +588,14 @@ window.WhatsCityApp = function WhatsCityApp() {
         </div>
       </div>
 
-      {/* Cornice Smartphone Principale (Design fedele alle Pagine 8 e 9 del PDF) */}
-      <div className="w-full sm:w-[420px] h-screen sm:h-[860px] bg-[#f4f7f6] sm:rounded-[42px] shadow-2xl overflow-hidden flex flex-col relative sm:border-[10px] sm:border-slate-800">
+      {/* Contenitore Principale: Full-Screen Desktop su PC oppure Cornice Smartphone per il Pitch */}
+      <div
+        className={
+          desktopMode
+            ? "w-full flex-1 h-screen bg-[#f4f7f6] overflow-hidden flex flex-col relative"
+            : "w-full sm:w-[420px] h-screen sm:h-[860px] bg-[#f4f7f6] sm:rounded-[42px] shadow-2xl overflow-hidden flex flex-col relative sm:border-[10px] sm:border-slate-800"
+        }
+      >
         {/* Top Header Verde Smeraldo (Identico al prototipo Pagina 8 e 9 + Avatar Account Loggato) */}
         <header className="bg-[#10b981] text-slate-950 px-3.5 py-3 flex items-center justify-between shadow-sm z-30 flex-shrink-0">
           <div className="flex items-center gap-1.5">
@@ -706,9 +733,15 @@ window.WhatsCityApp = function WhatsCityApp() {
             activeTab === "map" ? "overflow-hidden" : "overflow-y-auto"
           }`}
         >
-          {/* TAB 1: HOME FEED SOCIAL CITTADINO (Pagina 8 Sinistra PDF) */}
+          {/* TAB 1: HOME FEED SOCIAL CITTADINO (Con layout Desktop Multi-Colonna + Widget Telecamere Live su PC) */}
           {activeTab === "home" && (
-            <div className="p-3.5 space-y-3.5 pb-24">
+            <div
+              className={`p-3.5 sm:p-6 pb-24 mx-auto w-full ${
+                desktopMode ? "max-w-6xl grid grid-cols-1 xl:grid-cols-12 gap-6" : "space-y-3.5"
+              }`}
+            >
+              {/* Colonna Principale Feed Social */}
+              <div className={desktopMode ? "xl:col-span-7 space-y-4" : "space-y-3.5"}>
               {/* Barra Community / Stories Utenti Registrati nel DB */}
               <div className="bg-white rounded-3xl p-3 shadow-xs border border-slate-200/80">
                 <div className="flex items-center justify-between mb-2 px-1">
@@ -948,6 +981,105 @@ window.WhatsCityApp = function WhatsCityApp() {
                   </div>
                 </article>
               ))}
+              </div>
+
+              {/* Colonna Destra Desktop: Widget Live Milano (Mappa Rapida, Telecamere Attive, Sensori A2A) */}
+              {desktopMode && (
+                <aside className="hidden xl:block xl:col-span-5 space-y-4">
+                  {/* Card Rete Telecamere Live Milano */}
+                  <div className="bg-slate-950 text-white rounded-3xl p-5 shadow-lg border border-sky-500/30 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-400 block">
+                          Live Streaming & Traffico Waze
+                        </span>
+                        <h3 className="font-extrabold text-sm mt-0.5">
+                          📹 Telecamere Attive a Milano
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab("map")}
+                        className="text-xs font-extrabold text-sky-300 hover:underline"
+                      >
+                        Apri Mappa Waze →
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {(state.cityCameras || []).slice(0, 4).map((cam) => (
+                        <div
+                          key={cam.id}
+                          className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3"
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <img
+                              src={cam.previewImage}
+                              alt={cam.name}
+                              className="w-14 h-12 rounded-xl object-cover flex-shrink-0 border border-white/15"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold text-xs text-white truncate">
+                                {cam.name}
+                              </div>
+                              <div className="text-[10px] text-slate-300 truncate">
+                                {cam.aiAnalytics.vehiclesPerHour}
+                              </div>
+                              <div className="text-[10px] text-amber-300 font-semibold truncate">
+                                🤖 {cam.aiAnalytics.anomalyDetected}
+                              </div>
+                            </div>
+                          </div>
+                          <a
+                            href={cam.liveWebcamUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2.5 py-1.5 rounded-xl bg-[#0099ff] hover:bg-[#007acc] text-white font-extrabold text-[10px] whitespace-nowrap shadow"
+                          >
+                            📹 Live ↗
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card Sensori Pali Intelligenti A2A Milano */}
+                  <div className="bg-[#052e2b] text-white rounded-3xl p-5 shadow-lg border border-emerald-500/30 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-300 block">
+                          Rete Sensori IoT A2A Smart City
+                        </span>
+                        <h3 className="font-extrabold text-sm mt-0.5">
+                          📡 Qualità Aria & LED Milano
+                        </h3>
+                      </div>
+                      <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full font-bold">
+                        {(state.qrPoles || []).length} Pali Online
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {(state.qrPoles || []).map((p) => (
+                        <div
+                          key={p.id}
+                          onClick={() => {
+                            setPreselectedPole(p);
+                            setIsCreateOpen(true);
+                          }}
+                          className="bg-white/5 hover:bg-white/10 cursor-pointer border border-white/10 rounded-2xl p-2.5 flex items-center justify-between text-xs transition"
+                        >
+                          <div className="truncate pr-2">
+                            <div className="font-bold text-white truncate">{p.code}</div>
+                            <div className="text-[10px] text-emerald-200/70">{p.address}</div>
+                          </div>
+                          <span className="bg-emerald-500/20 text-emerald-300 font-extrabold px-2.5 py-1 rounded-xl text-[11px] whitespace-nowrap">
+                            AQI {p.sensor.aqi} · {p.sensor.temp}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </aside>
+              )}
             </div>
           )}
 

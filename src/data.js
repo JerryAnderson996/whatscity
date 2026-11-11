@@ -237,7 +237,7 @@ window.WHATSCITY_INITIAL_DATA = {
       type: "reward"
     }
   ],
-  // Rete Telecamere Live Traffico, Meteo, ZTL Area C/B e Sicurezza Idro di Milano
+  // Rete Telecamere Live Traffico, Meteo, ZTL Area C/B e Sicurezza Idro di Milano (con Embed Live Waze + Webcam Reali Milano)
   cityCameras: [
     {
       id: "CAM-MI-01",
@@ -246,7 +246,7 @@ window.WHATSCITY_INITIAL_DATA = {
       lat: 45.4642,
       lng: 9.1900,
       address: "Piazza del Duomo, 20121 Milano (MI)",
-      streamStatus: "LIVE HD · 30 fps",
+      streamStatus: "LIVE HD · WEBCAM DUOMO",
       aiAnalytics: {
         crowdDensity: "Elevata (1.420 pedoni/ora)",
         vehiclesPerHour: "ZTL Pedonale (Solo Tram ATM)",
@@ -255,7 +255,9 @@ window.WHATSCITY_INITIAL_DATA = {
         alertLevel: "normal"
       },
       previewImage: "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=900&auto=format&fit=crop&q=80",
-      streetViewCoords: "45.4642,9.1900"
+      liveWebcamUrl: "https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano/duomo-milano.html",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=12&overlay=wind&product=ecmwf&level=surface&lat=45.4642&lon=9.1900&detailLat=45.4642&detailLon=9.1900&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4642&lon=9.1900&pin=1"
     },
     {
       id: "CAM-MI-02",
@@ -273,7 +275,9 @@ window.WHATSCITY_INITIAL_DATA = {
         alertLevel: "normal"
       },
       previewImage: "https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=900&auto=format&fit=crop&q=80",
-      streetViewCoords: "45.4842,9.1886"
+      liveWebcamUrl: "https://www.windy.com/it/-Webcams-Milano/webcams/1391946519?45.484,9.189,14",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=radar&product=ecmwf&level=surface&lat=45.4842&lon=9.1886&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4842&lon=9.1886&pin=1"
     },
     {
       id: "CAM-MI-03",
@@ -282,7 +286,7 @@ window.WHATSCITY_INITIAL_DATA = {
       lat: 45.4526,
       lng: 9.1765,
       address: "Piazza XXIV Maggio / Darsena, 20123 Milano (MI)",
-      streamStatus: "LIVE HD · Night Vision",
+      streamStatus: "LIVE HD · DARSENA CAM",
       aiAnalytics: {
         crowdDensity: "Alta (Movida & Mercato Comunale)",
         vehiclesPerHour: "740 veicoli/h · Varco ZTL Navigli Attivo",
@@ -291,7 +295,9 @@ window.WHATSCITY_INITIAL_DATA = {
         alertLevel: "warning"
       },
       previewImage: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=900&auto=format&fit=crop&q=80",
-      streetViewCoords: "45.4526,9.1765"
+      liveWebcamUrl: "https://www.ilmeteo.it/webcam/Milano",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=temp&product=ecmwf&level=surface&lat=45.4526&lon=9.1765&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4526&lon=9.1765&pin=1"
     },
     {
       id: "CAM-MI-04",
@@ -309,7 +315,9 @@ window.WHATSCITY_INITIAL_DATA = {
         alertLevel: "critical"
       },
       previewImage: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=900&auto=format&fit=crop&q=80",
-      streetViewCoords: "45.5122,9.1968"
+      liveWebcamUrl: "https://www.lombardiawebcam.it/",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=12&overlay=rain&product=ecmwf&level=surface&lat=45.5122&lon=9.1968&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.5122&lon=9.1968&pin=1"
     },
     {
       id: "CAM-MI-05",
@@ -327,7 +335,9 @@ window.WHATSCITY_INITIAL_DATA = {
         alertLevel: "warning"
       },
       previewImage: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=900&auto=format&fit=crop&q=80",
-      streetViewCoords: "45.4812,9.2121"
+      liveWebcamUrl: "https://www.skylinewebcams.com/it/webcam/italia/lombardia/milano.html",
+      windyEmbedUrl: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=°C&metricWind=km/h&zoom=13&overlay=wind&product=ecmwf&level=surface&lat=45.4812&lon=9.2121&marker=true",
+      wazeEmbedUrl: "https://embed.waze.com/it/iframe?zoom=15&lat=45.4812&lon=9.2121&pin=1"
     }
   ],
   // Pali Intelligenti IoT A2A Smart City installati a Milano

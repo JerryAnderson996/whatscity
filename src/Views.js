@@ -47,7 +47,7 @@ window.WhatsCityCompanyView = function WhatsCityCompanyView({
   };
 
   return (
-    <div className="p-4 space-y-5 pb-24 animate-fadeIn">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-5 pb-24 animate-fadeIn">
       {/* Banner Impresa Virtuosa (Step 2 Pagina 10 PDF) */}
       <div className="bg-gradient-to-br from-[#052e2b] to-[#0e9f6e] text-white rounded-3xl p-4 shadow-lg">
         <div className="flex items-center justify-between gap-2 mb-2">
@@ -301,7 +301,7 @@ window.WhatsCityProfileView = function WhatsCityProfileView({
   const myReports = reports.filter((r) => r.authorName === user.name);
 
   return (
-    <div className="p-4 space-y-4 pb-24 animate-fadeIn">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-4 pb-24 animate-fadeIn">
       {/* Card Profilo Cittadino Attivo (Fedelissima a Pagina 8 destra del PDF) */}
       <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/80 text-center">
         <div className="relative inline-block">
@@ -546,7 +546,7 @@ window.WhatsCityDashboardView = function WhatsCityDashboardView({
   };
 
   return (
-    <div className="p-4 space-y-4 pb-24 animate-fadeIn">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto w-full space-y-4 pb-24 animate-fadeIn">
       {/* Banner AI Decision Support per la PA */}
       <div className="bg-gradient-to-r from-[#052e2b] to-[#0a5c48] text-white rounded-3xl p-4 shadow-lg flex items-center justify-between gap-3">
         <div>
@@ -678,41 +678,53 @@ window.WhatsCityDashboardView = function WhatsCityDashboardView({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 gap-2.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {(cityCameras || []).map((cam) => (
             <div
               key={cam.id}
-              className="bg-white/5 border border-white/10 rounded-2xl p-2.5 flex items-center gap-3"
+              className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col justify-between gap-2.5"
             >
-              <img
-                src={cam.previewImage}
-                alt={cam.name}
-                className="w-16 h-14 rounded-xl object-cover flex-shrink-0 border border-white/15"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-1">
-                  <span className="font-bold text-xs text-white truncate">
-                    {cam.name}
-                  </span>
-                  <span className="text-[9px] font-mono text-sky-300 flex-shrink-0">
-                    {cam.id}
-                  </span>
-                </div>
-                <div className="text-[10px] text-slate-300 truncate mt-0.5">
-                  🚗 {cam.aiAnalytics.vehiclesPerHour}
-                </div>
-                <div
-                  className={`text-[10px] font-bold truncate mt-0.5 ${
-                    cam.aiAnalytics.alertLevel === "critical"
-                      ? "text-red-400"
-                      : cam.aiAnalytics.alertLevel === "warning"
-                      ? "text-amber-300"
-                      : "text-emerald-300"
-                  }`}
-                >
-                  🤖 {cam.aiAnalytics.anomalyDetected}
+              <div className="flex items-center gap-3">
+                <img
+                  src={cam.previewImage}
+                  alt={cam.name}
+                  className="w-16 h-14 rounded-xl object-cover flex-shrink-0 border border-white/15"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="font-bold text-xs text-white truncate">
+                      {cam.name}
+                    </span>
+                    <span className="text-[9px] font-mono text-sky-300 flex-shrink-0">
+                      {cam.id}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-300 truncate mt-0.5">
+                    🚗 {cam.aiAnalytics.vehiclesPerHour}
+                  </div>
+                  <div
+                    className={`text-[10px] font-bold truncate mt-0.5 ${
+                      cam.aiAnalytics.alertLevel === "critical"
+                        ? "text-red-400"
+                        : cam.aiAnalytics.alertLevel === "warning"
+                        ? "text-amber-300"
+                        : "text-emerald-300"
+                    }`}
+                  >
+                    🤖 {cam.aiAnalytics.anomalyDetected}
+                  </div>
                 </div>
               </div>
+              {cam.liveWebcamUrl && (
+                <a
+                  href={cam.liveWebcamUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-1.5 px-3 rounded-xl bg-[#0099ff]/20 hover:bg-[#0099ff] text-sky-300 hover:text-white border border-sky-400/30 text-[11px] font-extrabold text-center transition"
+                >
+                  📹 Apri Webcam Live Reale Milano ↗
+                </a>
+              )}
             </div>
           ))}
         </div>
