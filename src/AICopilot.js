@@ -40,12 +40,15 @@ window.WhatsCityAIEngine = {
   },
 
   // Chiamata al Backend Serverless Edge (nessuna API key passa mai dal client o dal codice frontend)
-  async callServerlessGemini(promptText, jsonMode = false, chatHistory = [], systemContext = "") {
-    this.purgeLegacyClientKeys();
+  // Singolo tentativo verso il backend Edge (timeout client 28s)
+  async _edgeAttempt(promptText, jsonMode, chatHistory, systemContext) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 28000);
     try {
       const res = await fetch(this.EDGE_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           message: promptText,
           systemContext,
@@ -54,25 +57,32 @@ window.WhatsCityAIEngine = {
           preferredModel: this.getModel()
         })
       });
-
+      clearTimeout(timer);
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok && data.text) {
-        return {
-          ok: true,
-          text: data.text,
-          modelUsed: data.modelUsed || this.getModel()
-        };
+        return { ok: true, text: data.text, modelUsed: data.modelUsed || this.getModel() };
       }
-      return {
-        ok: false,
-        error: data.error || `HTTP ${res.status}`
-      };
+      return { ok: false, retryable: res.status !== 403 && res.status !== 400, error: data.error || `HTTP ${res.status}` };
     } catch (err) {
+      clearTimeout(timer);
       return {
         ok: false,
-        error: err.message || "Impossibile contattare il server AI Edge."
+        retryable: true,
+        error: err.name === "AbortError" ? "timeout del server" : err.message || "connessione non riuscita"
       };
     }
+  },
+
+  // Chiamata con retry automatico (fino a 3 tentativi con backoff) per gestire i picchi 503 di Google
+  async callServerlessGemini(promptText, jsonMode = false, chatHistory = [], systemContext = "") {
+    this.purgeLegacyClientKeys();
+    let last = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      last = await this._edgeAttempt(promptText, jsonMode, chatHistory, systemContext);
+      if (last.ok || !last.retryable) return last;
+      await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+    }
+    return last;
   },
 
   // 1. Smart Triage & Deduplicazione Segnalazioni tramite Backend Sicuro Gemini
