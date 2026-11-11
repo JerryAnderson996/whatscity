@@ -297,9 +297,6 @@ window.WhatsCityAICopilotModal = function WhatsCityAICopilotModal({
                   🔒 Edge Protetto
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-100/80">
-                Google Gemini Server-Side (Zero API Key esposte nel client)
-              </p>
             </div>
           </div>
 
