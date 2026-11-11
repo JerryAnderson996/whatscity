@@ -1,6 +1,6 @@
 // App Principale WhatsCity: Social Network Civico con Registrazione/Login DB, AI Copilot, Mappe IoT e 5 Tab
 window.WhatsCityApp = function WhatsCityApp() {
-  const STORAGE_KEY = "whatscity_state_milano_v6";
+  const STORAGE_KEY = "whatscity_state_milano_v7";
 
   const [state, setState] = React.useState(() => {
     try {

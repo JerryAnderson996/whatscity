@@ -46,8 +46,8 @@ Le app di segnalazione civica tradizionali sono frammentate, non incentivano la 
 
 ## ✨ Funzionalità Principali Implementate
 
-### 🗺️ 1. Mappa Interattiva Stile Waze + Geolocalizzazione Utente GPS + Waze Live Traffic
-- **🎯 Geolocalizzazione Utente Registrato sulla Mappa:** cliccando su **`🎯 La mia posizione GPS`**, l'utente registrato viene geolocalizzato in tempo reale sulla mappa con il **proprio avatar personale e un radar blu pulsante** in stile Waze; toccando il proprio avatar può aprire istantaneamente una segnalazione dalla posizione esatta in cui si trova.
+### 🗺️ 1. Mappa Interattiva Stile Waze + Geolocalizzazione GPS Reale del Dispositivo + Waze Live Traffic
+- **🎯 Geolocalizzazione GPS Reale del Dispositivo (Multi-Step):** cliccando su **`🎯 La mia posizione GPS`**, l'app interroga la posizione reale del dispositivo (1° step: antenna GPS hardware ad alta precisione; 2° step: posizionamento Wi-Fi/Rete del sistema operativo; 3° step: geolocalizzazione IP reale se l'utente nega il permesso al browser), disegna il **cerchio di precisione in metri (`±m`)**, risolve l'indirizzo reale tramite Reverse Geocoding e posiziona sulla mappa **l'avatar dell'utente registrato**.
 - **Mappa Vettoriale/Stradale Nitida (Zero API Key richiesta):** basata su Esri World Street Map & OpenStreetMap con **Bubble Pin 3D in stile Waze** per segnalazioni aperte (`🔴`), cantieri in lavorazione (`🟡 🔧`) e interventi risolti (`🟢 ✓`).
 - **🚗 Integrazione Waze Live Traffic Milano:** switch istantaneo (`🚗 Waze Traffico Live`) che incorpora la mappa del traffico in tempo reale di Waze su Milano.
 - **🛰️ Vista Satellitare HD & Ricerca Geocoding Live:** barra di ricerca per qualsiasi via, piazza o incrocio di Milano + Reverse Geocoding automatico toccando un punto sulla mappa (`+ Segnala su Mappa`).
@@ -65,12 +65,10 @@ Ogni telecamera sulla mappa è posizionata esattamente nella zona di Milano in c
 - **Telemetria Ambientale Live:** ogni Palo Smart A2A mostra indice di qualità dell'aria (`AQI`), concentrazione `PM 2.5`, temperatura/umidità, stato dei corpi illuminanti LED e flussi di traffico.
 - **Simulatore Cartello QR Cittadino:** riproduce il cartello giallo/verde **WhatsCity — SCAN ME** per testare l'apertura istantanea di un ticket agganciato ai sensori del palo.
 
-### 🌱 4. Chatbot Eco-Bot & Guida alla Navigazione + AI Smart Triage
-- **🌱 Chatbot "Eco-Bot & Guida Sito" (Sempre accessibile in basso a destra):**
-  - **Assistente alla Navigazione del Sito:** spiega come usare ogni sezione dell'applicazione e include una barra **`🧭 Vai a:`** con pulsanti 1-click per saltare direttamente a *Feed Social*, *Mappa & GPS*, *Portale Aziende*, *Premi Eco* o *Dashboard PA*.
-  - **Consulente Ecologico & Sostenibilità (Re-GenerAction A2A):** fornisce informazioni e consigli pratici su economia circolare, raccolta differenziata AMSA/A2A, risparmio energetico dei lampioni LED intelligenti, assorbimento di CO₂ con il progetto *ForestaMi* e qualità dell'aria (`AQI` / `PM 2.5`).
-  - **Architettura Ibrida:** motore AI locale istantaneo + supporto opzionale per **Google Gemini API (`gemini-2.5-flash`)**.
-- **AI Smart Triage in Creazione Post:** analizza titolo, descrizione e foto per compilare automaticamente *Categoria*, *Priorità*, *Azienda/Utility suggerita* e segnalare eventuali **ticket duplicati** vicini.
+### 🌱 4. Chatbot "Eco-Bot & Guida Sito" Collegato a un Vero LLM Cloud + AI Smart Triage
+- **🧠 Connessione LLM Cloud Reale (Zero Configurazione):** sia il chatbot **`🌱 Eco-Bot & Guida Sito`** sia l'**AI Smart Triage** sono collegati direttamente a un **Large Language Model (LLM) Cloud** che riceve in tempo reale il contesto completo della città (segnalazioni attive, telemetria dei Pali IoT A2A, stato delle 6 telecamere di Milano e punteggio dell'utente loggato) e risponde liberamente a qualsiasi domanda senza bisogno di inserire chiavi API (con supporto aggiuntivo per Google Gemini 2.5 Flash API).
+- **🧭 Assistente alla Navigazione del Sito:** spiega come usare ogni sezione dell'applicazione e include una barra **`🧭 Vai a:`** con pulsanti 1-click per saltare direttamente a *Feed Social*, *Mappa & GPS*, *Portale Aziende*, *Premi Eco* o *Dashboard PA*.
+- **🌿 Consulente Ecologico & Sostenibilità (Re-GenerAction A2A):** fornisce informazioni e consigli su economia circolare, raccolta differenziata AMSA/A2A, risparmio energetico dei lampioni LED intelligenti, assorbimento di CO₂ con il progetto *ForestaMi* e qualità dell'aria (`AQI` / `PM 2.5`).
 
 ### 🔐 5. Vero Social Network con Registrazione Multi-Ruolo & Database
 - **Iscrizione e Login Reali:** chiunque può registrarsi scegliendo il ruolo (**Cittadino**, **Azienda B2B con P.IVA**, **Operatore PA**), caricare il proprio avatar e pubblicare post o commenti col proprio profilo.

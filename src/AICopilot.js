@@ -96,9 +96,44 @@ Rispondi SOLO in JSON valido con le chiavi:
           }
         }
       } catch (err) {
-        console.warn("Fallback su motore AI locale:", err);
+        console.warn("Fallback su Cloud LLM gratuito:", err);
       }
     }
+
+    // Connessione Cloud LLM gratuita per lo Smart Triage (senza API Key)
+    try {
+      const llmPrompt = `Analizza questa segnalazione urbana a Milano:
+Titolo: "${title}"
+Descrizione: "${description}"
+Rispondi SOLO con un oggetto JSON valido (senza markdown) con queste esatte chiavi:
+{"category":"Illuminazione oppure Rifiuti oppure Verde & Alberi oppure Strade & Buche oppure Sicurezza & Idro","priority":"Alta oppure Media oppure Bassa","suggestedCompany":"A2A Illuminazione Pubblica oppure AMSA Gruppo A2A oppure MM S.p.A. oppure Consorzio Verde Milano","reason":"spiegazione tecnica in 12 parole"}`;
+
+      const llmRes = await fetch("https://text.pollinations.ai/openai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "openai",
+          messages: [{ role: "user", content: llmPrompt }],
+          temperature: 0.2
+        })
+      });
+      if (llmRes.ok) {
+        const llmData = await llmRes.json();
+        const rawText = llmData?.choices?.[0]?.message?.content || "";
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          return {
+            category: parsed.category || category,
+            priority: parsed.priority || priority,
+            suggestedCompany: parsed.suggestedCompany || suggestedCompany,
+            reason: parsed.reason || reason,
+            duplicateReport: duplicate || null,
+            engine: "WhatsCity Cloud LLM Triage 🧠"
+          };
+        }
+      }
+    } catch (e) {}
 
     return {
       category,
@@ -119,19 +154,25 @@ Rispondi SOLO in JSON valido con le chiavi:
     const inProgressReports = reports.filter((r) => r.status === "in_progress");
     const resolvedReports = reports.filter((r) => r.status === "resolved");
 
-    // Se l'utente ha configurato una Gemini API Key reale, interroga Gemini con tutto il contesto live della città
+    // 1. Se l'utente ha configurato una Gemini API Key personale, usa Google Gemini 2.5 Flash
+    const systemContext = `Sei "WhatsCity Eco-Bot & AI Copilot", l'assistente intelligente ufficiale della web app WhatsCity (Milano Smart City — Progetto Re-GenerAction AEB / Gruppo A2A, ideato dal team Jerry El Gendy, Davide Ronzulli, Ambra Scarselletta).
+Il tuo compito è triplo:
+1) GUIDA ALLA NAVIGAZIONE DEL SITO: spiegare come usare le 5 sezioni dell'app:
+   - Tab 1 "Home (Feed Social)": post geolocalizzati dei cittadini, tasto "Grazie", commenti, stories della community e pulsante "+ Segnala".
+   - Tab 2 "Mappa": mappa in stile Waze, pulsante "🎯 La mia posizione GPS" (geolocalizza la posizione reale del dispositivo col proprio avatar), "🚗 Waze Traffico Live", 5 Pali Intelligenti IoT A2A con QR Code e 6 Telecamere Live reali di Milano (Duomo, San Babila, Stazione Centrale, San Lorenzo, CityLife, San Siro).
+   - Tab 3 "Apps / Aziende (Portale B2B)": le imprese locali e utility (A2A Illuminazione, AMSA, MM S.p.A.) prendono in carico i ticket e caricano la foto post-intervento (Prima/Dopo) guadagnando +50 punti ESG.
+   - Tab 4 "Profilo & Premi": gamification con City Impact Score convertibile in sconti bolletta A2A Energia, BikeMi/ATM, Musei Civici e alberi ForestaMi.
+   - Tab 5 "Dashboard PA & Open Data": cabina di regia del Comune di Milano con grafici, priorità e download dataset CSV/JSON.
+2) ESPERTO ECOLOGICO & SOSTENIBILITÀ URBANA: fornire risposte accurate e consigli pratici su economia circolare, raccolta differenziata AMSA/A2A, mobilità sostenibile, efficienza energetica LED, qualità dell'aria (AQI, PM2.5), forestazione urbana (ForestaMi) e resilienza climatica/idrogeologica.
+3) ANALISI DATI LIVE DELLA CITTÀ:
+   - Ruolo utente attuale: ${roleContext} (${appState.currentUser.name}, ${appState.currentUser.impactScore} punti Impact Score).
+   - Segnalazioni attive a Milano (${reports.length} totali): ${openReports.map((r) => `${r.title} in ${r.address} (Priorità ${r.priority})`).join("; ")}.
+   - Telemetria Pali IoT A2A: ${poles.map((p) => `${p.id} (${p.address}): AQI ${p.sensor.aqi} ${p.sensor.aqiLabel}, PM2.5 ${p.sensor.pm25}, Temp ${p.sensor.temp}`).join(" | ")}.
+
+Rispondi sempre in italiano in modo amichevole, preciso, ben formattato (usa elenchi puntati ed emoji) e conciso.`;
+
     if (apiKey) {
       try {
-        const systemContext = `Sei "WhatsCity AI Copilot", l'assistente intelligente della piattaforma civica WhatsCity (sviluppata per Re-GenerAction AEB Gruppo A2A - Comune di Meda).
-Ruolo utente attuale: ${roleContext}.
-Dati città in tempo reale:
-- Segnalazioni totali: ${reports.length} (${openReports.length} aperte, ${inProgressReports.length} in lavorazione, ${resolvedReports.length} risolte).
-- Segnalazioni aperte critiche: ${openReports.map((r) => `${r.title} (${r.address}, Priorità ${r.priority})`).join("; ")}.
-- Pali Intelligenti IoT A2A attivi: ${poles.map((p) => `${p.id} in ${p.address}: AQI ${p.sensor.aqi} (${p.sensor.aqiLabel}), Temp ${p.sensor.temp}, Stato LED: ${p.sensor.ledStatus}`).join(" | ")}.
-- Utente corrente: ${appState.currentUser.name} (${appState.currentUser.impactScore} punti City Impact Score).
-
-Rispondi in italiano in modo chiaro, conciso, operativo e strutturato con elenchi puntati quando utile.`;
-
         const res = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
           {
@@ -153,12 +194,41 @@ Rispondi in italiano in modo chiaro, conciso, operativo e strutturato con elench
           const data = await res.json();
           const replyText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
           if (replyText) {
-            return { text: replyText, source: "Gemini API Live" };
+            return { text: replyText, source: "Google Gemini 2.5 Flash LLM ✨" };
           }
         }
       } catch (e) {
-        console.warn("Errore chiamata Gemini API, uso motore locale:", e);
+        console.warn("Errore chiamata Gemini API, passo al Cloud LLM gratuito:", e);
       }
+    }
+
+    // 2. CONNESSIONE LLM CLOUD REALE GRATUITA (Zero API Key richiesta - OpenAI/Mistral compatibile via Pollinations Text AI)
+    try {
+      const llmRes = await fetch("https://text.pollinations.ai/openai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "openai",
+          messages: [
+            { role: "system", content: systemContext },
+            { role: "user", content: userMessage }
+          ],
+          temperature: 0.5
+        })
+      });
+
+      if (llmRes.ok) {
+        const llmData = await llmRes.json();
+        const llmReply = llmData?.choices?.[0]?.message?.content;
+        if (llmReply && llmReply.trim().length > 5) {
+          return {
+            text: llmReply.trim(),
+            source: "WhatsCity Cloud LLM (Live AI) 🧠"
+          };
+        }
+      }
+    } catch (cloudErr) {
+      console.warn("Cloud LLM non raggiungibile, uso fallback locale:", cloudErr);
     }
 
     // Motore AI Locale Intelligente contestuale per Milano Smart City
@@ -365,9 +435,9 @@ window.WhatsCityAICopilotModal = function WhatsCityAICopilotModal({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h3 className="font-extrabold text-sm">WhatsCity AI Copilot</h3>
+                <h3 className="font-extrabold text-sm">WhatsCity Eco-Bot & LLM</h3>
                 <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950">
-                  {apiKeyInput ? "Gemini Live" : "Hybrid AI"}
+                  {apiKeyInput ? "Gemini 2.5 LLM" : "Cloud LLM Attivo"}
                 </span>
               </div>
               <p className="text-[11px] text-emerald-100/80">

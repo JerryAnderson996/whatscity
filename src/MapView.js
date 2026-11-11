@@ -68,11 +68,12 @@ window.WhatsCityMapView = function WhatsCityMapView({
     { name: "San Siro", coords: [45.4781, 9.1240], zoom: 16 }
   ];
 
-  // Funzione Geolocalizzazione GPS dell'Utente Registrato
+  // Funzione Geolocalizzazione GPS REALE del Dispositivo (con Fallback in due step + IP Location solo se negato)
   const handleLocateMe = () => {
     setIsLocatingMe(true);
-    const applyUserCoords = async (lat, lng, isSimulatedMilano) => {
-      let resolvedAddress = `${currentUser ? currentUser.neighborhood : "Centro"}, Milano`;
+
+    const applyUserCoords = async (lat, lng, accuracyMeters, sourceLabel) => {
+      let resolvedAddress = `Coordinate GPS (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
@@ -84,43 +85,94 @@ window.WhatsCityMapView = function WhatsCityMapView({
               data.address.road ||
               data.address.pedestrian ||
               data.address.square ||
-              "Posizione GPS";
+              data.address.suburb ||
+              "Posizione Rilevata";
             const num = data.address.house_number ? ` ${data.address.house_number}` : "";
-            const city = data.address.city || data.address.town || "Milano";
-            resolvedAddress = `${road}${num}, ${city}`;
+            const city =
+              data.address.city ||
+              data.address.town ||
+              data.address.village ||
+              data.address.municipality ||
+              "";
+            resolvedAddress = `${road}${num}${city ? `, ${city}` : ""}`;
           }
         }
       } catch (err) {}
 
       const locObj = {
-        lat: Number(lat.toFixed(4)),
-        lng: Number(lng.toFixed(4)),
-        address: resolvedAddress,
-        isSimulatedMilano
+        lat: Number(lat.toFixed(6)),
+        lng: Number(lng.toFixed(6)),
+        accuracy: accuracyMeters ? Math.round(accuracyMeters) : null,
+        sourceLabel: sourceLabel || "GPS Dispositivo",
+        address: resolvedAddress
       };
+
       setMyGpsLocation(locObj);
-      setWazeCoords({ lat: locObj.lat, lng: locObj.lng, zoom: 16 });
+      setWazeCoords({ lat: locObj.lat, lng: locObj.lng, zoom: 17 });
       const map = mapInstanceRef.current;
       if (map && mapStyle !== "waze_live") {
-        map.flyTo([locObj.lat, locObj.lng], 16, { duration: 0.8 });
+        map.flyTo([locObj.lat, locObj.lng], 17, { duration: 1.0 });
       }
       setIsLocatingMe(false);
     };
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          applyUserCoords(pos.coords.latitude, pos.coords.longitude, false);
-        },
-        () => {
-          // Fallback intelligente sulle coordinate del quartiere dell'utente a Milano
-          applyUserCoords(45.4658, 9.1912, true);
-        },
-        { enableHighAccuracy: true, timeout: 6000 }
+    const fallbackToIpLocation = async () => {
+      try {
+        const ipRes = await fetch("https://ipapi.co/json/");
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          if (ipData && ipData.latitude && ipData.longitude) {
+            await applyUserCoords(
+              Number(ipData.latitude),
+              Number(ipData.longitude),
+              500,
+              `Rete / IP (${ipData.city || "Italia"})`
+            );
+            return;
+          }
+        }
+      } catch (e) {}
+      setIsLocatingMe(false);
+      alert(
+        "Impossibile rilevare la posizione: assicurati di aver concesso il permesso di Posizione (GPS) al browser cliccando sul lucchetto accanto all'URL."
       );
-    } else {
-      applyUserCoords(45.4658, 9.1912, true);
+    };
+
+    if (!navigator.geolocation) {
+      fallbackToIpLocation();
+      return;
     }
+
+    // Step 1: Chiedi posizione GPS Hardware ad Alta Precisione (con 20 secondi di timeout per dare tempo all'utente di accettare il popup del browser)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        applyUserCoords(
+          pos.coords.latitude,
+          pos.coords.longitude,
+          pos.coords.accuracy,
+          "GPS Reale Dispositivo"
+        );
+      },
+      (err) => {
+        console.warn("HighAccuracy GPS warning, provo Wi-Fi/Cell geolocation:", err);
+        // Step 2: Se il PC non ha antenna GPS satellitare o impiega troppo, usa la localizzazione Wi-Fi/Rete del sistema operativo
+        navigator.geolocation.getCurrentPosition(
+          (pos2) => {
+            applyUserCoords(
+              pos2.coords.latitude,
+              pos2.coords.longitude,
+              pos2.coords.accuracy,
+              "Posizione Wi-Fi / Sistema"
+            );
+          },
+          () => {
+            fallbackToIpLocation();
+          },
+          { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+        );
+      },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+    );
   };
 
   React.useEffect(() => {
@@ -509,15 +561,34 @@ window.WhatsCityMapView = function WhatsCityMapView({
       const myMarker = L.marker([myGpsLocation.lat, myGpsLocation.lng], {
         icon: myGpsIcon
       });
+      myMarker.bindPopup(
+        `<div style="font-size:11px;line-height:1.4;">
+          <strong>📍 ${userName} (${myGpsLocation.sourceLabel})</strong><br/>
+          ${myGpsLocation.address}<br/>
+          <span style="color:#0284c7;font-family:monospace;">Lat: ${myGpsLocation.lat}, Lng: ${myGpsLocation.lng}</span>
+          ${myGpsLocation.accuracy ? `<br/><span style="color:#64748b;">Precisione: ±${myGpsLocation.accuracy}m</span>` : ""}
+        </div>`
+      );
       myMarker.on("click", () => {
         onOpenNewReportAtCoords({
           lat: myGpsLocation.lat,
           lng: myGpsLocation.lng,
           address: myGpsLocation.address,
-          prefillTitle: `Segnalazione dalla posizione di ${userName}`
+          prefillTitle: `Segnalazione da ${myGpsLocation.address}`
         });
       });
       myMarker.addTo(layer);
+
+      // Cerchio di precisione GPS reale attorno all'utente
+      if (myGpsLocation.accuracy && myGpsLocation.accuracy < 2000) {
+        L.circle([myGpsLocation.lat, myGpsLocation.lng], {
+          radius: myGpsLocation.accuracy,
+          color: "#0099ff",
+          fillColor: "#0099ff",
+          fillOpacity: 0.12,
+          weight: 1.5
+        }).addTo(layer);
+      }
     }
   }, [filteredReports, qrPoles, cityCameras, showIoTPoles, showCameras, myGpsLocation, currentUser]);
 
