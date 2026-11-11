@@ -113,7 +113,7 @@ Rispondi SOLO in JSON valido con le chiavi:
           suggestedCompany: parsed.suggestedCompany || "MM S.p.A. & Impresa Strade Milano",
           reason: parsed.reason || "Analisi effettuata con Google Gemini.",
           duplicateReport: duplicate || null,
-          engine: `Google Gemini (${geminiRes.modelUsed} · Edge Sicuro 🔒)`
+          engine: `Smart Triage AI ✨`
         };
       } catch (e) {}
     }
@@ -197,11 +197,11 @@ CONTESTO LIVE DELL'APPLICAZIONE IN QUESTO ISTANTE:
     if (result.ok) {
       return {
         text: result.text,
-        source: `Google Gemini (${result.modelUsed}) · Server-Side Edge 🔒`
+        source: `WhatsCity Eco-Bot 🌱`
       };
     } else {
       return {
-        source: "Avviso Connessione AI Edge ⚠️",
+        source: "WhatsCity Eco-Bot ⚠️",
         text: `⚠️ **Impossibile completare la richiesta in questo istante:** ${result.error}. Riprova tra qualche secondo.`
       };
     }
@@ -224,8 +224,8 @@ window.WhatsCityAICopilotModal = function WhatsCityAICopilotModal({
     {
       role: "assistant",
       isSystemWelcome: true,
-      source: "Google Gemini · Server-Side Edge Proxy 🔒",
-      text: "Ciao! Sono **WhatsCity Eco-Bot & AI Copilot**.\n\nSono collegato a **Google Gemini** tramite **Backend Serverless Edge protetto (OWASP Top 10)**: la chiave API risiede esclusivamente sul server cifrato e non è mai esposta nel browser o nel codice.\n\nChiedimi qualsiasi cosa sulla navigazione del sito, sui dati live di Milano o su temi di ecologia e sostenibilità!"
+      source: "WhatsCity Eco-Bot 🌱",
+      text: "Ciao! Sono **WhatsCity Eco-Bot**, il tuo assistente per Milano Smart City.\n\nChiedimi qualsiasi cosa sulla navigazione del sito, sui dati live di Milano o su temi di ecologia e sostenibilità!"
     }
   ]);
   const [input, setInput] = React.useState("");
@@ -293,9 +293,6 @@ window.WhatsCityAICopilotModal = function WhatsCityAICopilotModal({
             <div>
               <div className="flex items-center gap-1.5">
                 <h3 className="font-extrabold text-sm">WhatsCity Eco-Bot AI</h3>
-                <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950">
-                  🔒 Edge Protetto
-                </span>
               </div>
             </div>
           </div>
@@ -358,7 +355,7 @@ window.WhatsCityAICopilotModal = function WhatsCityAICopilotModal({
           {isLoading && (
             <div className="flex items-center gap-2 text-xs text-slate-600 bg-white px-3.5 py-2.5 rounded-2xl border border-slate-200 w-fit shadow-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              <span>Google Gemini ({selectedModel}) sta elaborando sul server Edge...</span>
+              <span>WhatsCity Eco-Bot sta scrivendo...</span>
             </div>
           )}
           <div ref={chatEndRef} />
